@@ -1,0 +1,47 @@
+import type { Metadata } from 'next';
+import { Archivo, JetBrains_Mono } from 'next/font/google';
+import ThemeToggle from '@/components/ThemeToggle';
+import NavAuth from '@/components/NavAuth';
+import './globals.css';
+
+const display = Archivo({
+  subsets: ['latin'], variable: '--font-display',
+  weight: ['400','500','600','700','800','900'],
+});
+const mono = JetBrains_Mono({
+  subsets: ['latin'], variable: '--font-mono', weight: ['400','500','700'],
+});
+
+export const metadata: Metadata = {
+  title: 'MatchIQ — Football Form & Predictions',
+  description: 'Model-led match predictions across 17 European leagues',
+};
+
+const noFlash = `
+(function(){
+  try {
+    var saved = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+  } catch (e) {}
+})();
+`;
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${display.variable} ${mono.variable}`}>
+        <script dangerouslySetInnerHTML={{ __html: noFlash }} />
+        <nav className="nav">
+          <a href="/" className="nav-mark">Match<em>IQ</em></a>
+          <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+            <a href="/" className="nav-link">Leagues</a>
+            <ThemeToggle />
+            <NavAuth />
+          </div>
+        </nav>
+        <main className="wrap">{children}</main>
+      </body>
+    </html>
+  );
+}

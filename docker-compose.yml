@@ -1,0 +1,75 @@
+version: '2.4'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: matchpredictor
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  python_service:
+    build: ./python_service
+    ports:
+      - "8001:8001"
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    volumes:
+      - ./python_service/data:/app/data
+      - ./python_service/models:/app/models
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  go_service:
+    build: ./go_service
+    ports:
+      - "8080:8080"
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      DB_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/matchpredictor?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_ADDR: redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      PYTHON_SERVICE_URL: http://python_service:8001
+      FOOTBALL_DATA_API_KEY: ${FOOTBALL_DATA_API_KEY}
+      PORT: 8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,0 +1,6 @@
+ALTER TABLE users ALTER COLUMN password DROP NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS provider TEXT NOT NULL DEFAULT 'local';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS users_provider_idx
+  ON users (provider, provider_id) WHERE provider_id IS NOT NULL;

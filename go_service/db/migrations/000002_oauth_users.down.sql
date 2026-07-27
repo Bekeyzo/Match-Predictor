@@ -1,0 +1,4 @@
+DROP INDEX IF EXISTS users_provider_idx;
+ALTER TABLE users DROP COLUMN IF EXISTS email;
+ALTER TABLE users DROP COLUMN IF EXISTS provider_id;
+ALTER TABLE users DROP COLUMN IF EXISTS provider;

@@ -1,0 +1,29 @@
+# secrets — never commit these
+.env
+.env.*
+!.env.example
+*/.env
+*/.env.local
+
+# node
+node_modules/
+.next/
+out/
+npm-debug.log*
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# derived data — regenerated on startup, large, not source
+python_service/data/*.csv
+python_service/models/*.joblib
+
+# go build output
+go_service/server
+
+# macos
+.DS_Store
+*.zip
