@@ -20,9 +20,9 @@ export const metadata: Metadata = {
 const noFlash = `
 (function(){
   try {
+    // Dark by default — users can switch, and their choice is remembered
     var saved = localStorage.getItem('theme');
-    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    document.documentElement.setAttribute('data-theme', saved || 'dark');
   } catch (e) {}
 })();
 `;
