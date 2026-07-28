@@ -27,3 +27,6 @@ go_service/server
 # macos
 .DS_Store
 *.zip
+*~
+AGENTS.md
+CLAUDE.md
