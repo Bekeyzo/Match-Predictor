@@ -14,7 +14,7 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'MatchIQ — Football Form & Predictions',
-  description: 'Model-led match predictions across 17 European leagues',
+  description: 'Model-led match predictions across European leagues',
 };
 
 const noFlash = `
@@ -32,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={`${display.variable} ${mono.variable}`}>
         <script dangerouslySetInnerHTML={{ __html: noFlash }} />
+
         <nav className="nav">
           <a href="/" className="nav-mark">Match<em>IQ</em></a>
           <div style={{ display:'flex', alignItems:'center', gap:16 }}>
@@ -40,7 +41,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <NavAuth />
           </div>
         </nav>
+
         <main className="wrap">{children}</main>
+
+        <footer className="foot">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <span>Predictions are estimates, not guarantees</span>
+        </footer>
       </body>
     </html>
   );

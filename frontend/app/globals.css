@@ -486,3 +486,19 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
   font-weight:700; margin-left:0; }
 .acc-row .acc-up, .acc-row .acc-down { font-family:var(--font-mono),monospace;
   font-size:11px; min-width:34px; text-align:right; }
+
+/* ---------- legal pages ---------- */
+.legal { max-width: 660px; }
+.legal h2 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin: 30px 0 8px; }
+.legal h2.legal-flag { color: var(--purple); }
+.legal p, .legal li { font-size: 14px; line-height: 1.7; color: var(--ink-2); }
+.legal p { margin-bottom: 12px; }
+.legal ul { margin: 0 0 14px 18px; }
+.legal li { margin-bottom: 5px; }
+.legal strong { color: var(--ink); font-weight: 700; }
+.legal-date { font-size: 12px; color: var(--ink-3); margin-bottom: 8px; }
+
+.foot { border-top: 1px solid var(--rule); margin-top: 60px; padding: 22px 24px 40px;
+  display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+.foot a, .foot span { font-size: 12px; color: var(--ink-3); }
+.foot a:hover { color: var(--purple); }
