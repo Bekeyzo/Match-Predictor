@@ -219,7 +219,7 @@ def poisson_pmf(k, lam):
     return (lam ** k) * math.exp(-lam) / math.factorial(k)
 
 
-def scoreline_probs(exp_home, exp_away, max_goals=5):
+def scoreline_probs(exp_home, exp_away, max_goals=8):
     probs = {}
     total = 0.0
     for i in range(max_goals + 1):
@@ -414,6 +414,8 @@ def predict_fixture(
         "btts_prob_pct": round(sum(p for (i, j), p in probs.items() if i > 0 and j > 0) * 100, 2),
         "expected_total_goals": round(sum((i + j) * p for (i, j), p in probs.items()), 3),
         "prob_over_2_5_pct": round(sum(p for (i, j), p in probs.items() if (i + j) > 2.5) * 100, 2),
+        "prob_over_1_5_pct": round(sum(p for (i, j), p in probs.items() if (i + j) > 1.5) * 100, 2),
+        "prob_over_3_5_pct": round(sum(p for (i, j), p in probs.items() if (i + j) > 3.5) * 100, 2),
         "expected_home_corners": round(hf['corners_for'], 2),
         "expected_away_corners": round(af['corners_for'], 2),
         "expected_total_corners": round(hf['corners_for'] + af['corners_for'], 2),

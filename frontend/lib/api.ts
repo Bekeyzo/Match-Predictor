@@ -52,6 +52,8 @@ export interface PredictionResult {
   btts_prob_pct: number;
   expected_total_goals: number;
   prob_over_2_5_pct: number;
+  prob_over_1_5_pct: number;
+  prob_over_3_5_pct: number;
   expected_home_corners: number;
   expected_away_corners: number;
   expected_total_corners: number;

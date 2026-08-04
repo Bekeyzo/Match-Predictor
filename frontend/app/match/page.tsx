@@ -147,7 +147,6 @@ function MatchContent() {
             <span className="eyebrow" style={{ color:'rgba(250,249,246,.5)' }}>
               {league} · {new Date(date).toLocaleDateString('en-GB', { day:'numeric', month:'short' })}
             </span>
-            {cached && <span className="eyebrow" style={{ color:'var(--purple-lt)' }}>⚡ Cached</span>}
           </div>
           <div className="pred-teams">
             <div className="pred-team">
@@ -216,8 +215,16 @@ function MatchContent() {
               <div className="eyebrow" style={{ marginTop:4 }}>Both score</div>
             </div>
             <div>
+              <div className="market-val">{p.prob_over_1_5_pct.toFixed(0)}%</div>
+              <div className="eyebrow" style={{ marginTop:4 }}>Over 1.5</div>
+            </div>
+            <div>
               <div className="market-val">{p.prob_over_2_5_pct.toFixed(0)}%</div>
               <div className="eyebrow" style={{ marginTop:4 }}>Over 2.5</div>
+            </div>
+            <div>
+              <div className="market-val">{p.prob_over_3_5_pct.toFixed(0)}%</div>
+              <div className="eyebrow" style={{ marginTop:4 }}>Over 3.5</div>
             </div>
           </div>
 

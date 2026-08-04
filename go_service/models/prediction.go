@@ -22,6 +22,8 @@ type PredictionResult struct {
 	BttprobPct             float64 `json:"btts_prob_pct"`
 	ExpectedTotalGoals     float64 `json:"expected_total_goals"`
 	ProbOver25Pct          float64 `json:"prob_over_2_5_pct"`
+	ProbOver15Pct          float64 `json:"prob_over_1_5_pct"`
+	ProbOver35Pct          float64 `json:"prob_over_3_5_pct"`
 	ExpectedHomeCorners    float64 `json:"expected_home_corners"`
 	ExpectedAwayCorners    float64 `json:"expected_away_corners"`
 	ExpectedTotalCorners   float64 `json:"expected_total_corners"`
