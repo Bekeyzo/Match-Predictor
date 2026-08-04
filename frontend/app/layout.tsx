@@ -3,7 +3,6 @@ import { Archivo, JetBrains_Mono } from 'next/font/google';
 import ThemeToggle from '@/components/ThemeToggle';
 import NavAuth from '@/components/NavAuth';
 import './globals.css';
-import { Instagram } from 'lucide-react';
 
 const display = Archivo({
   subsets: ['latin'], variable: '--font-display',
