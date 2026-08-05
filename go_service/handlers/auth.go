@@ -11,8 +11,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type registerInput struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func Register(c echo.Context) error {
-	var user models.User
+	var user registerInput
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
