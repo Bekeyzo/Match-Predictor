@@ -48,8 +48,13 @@ func Register(c echo.Context) error {
 	return c.JSON(http.StatusCreated, created)
 }
 
+type loginInput struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func Login(c echo.Context) error {
-	var input models.User
+	var input loginInput
 	if err := c.Bind(&input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
