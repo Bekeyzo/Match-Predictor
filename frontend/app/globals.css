@@ -532,10 +532,12 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 
 /* swipe affordance on the featured rail */
 .feat-rail {
-  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
-          mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 72%, transparent 97%);
+          mask-image: linear-gradient(to right, #000 72%, transparent 97%);
 }
 @media (max-width: 640px) {
-  /* card slightly narrower than viewport so the next one peeks in */
-  .feat-card { width: 82vw; max-width: 260px; }
+  /* card sized so the NEXT card clearly peeks past the screen edge */
+  .feat-card { width: 74vw; max-width: 260px; }
+  /* nudge the whole rail so the peek sits inside the visible area */
+  .feat-rail { padding-right: 24px; }
 }
