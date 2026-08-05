@@ -34,8 +34,10 @@ export default function AuthCard({ heading, note, onSignedIn, hideWhenSignedIn }
       setUser(username);
       setPassword('');
       onSignedIn?.();
-    } catch {
-      setMsg(mode === 'up' ? 'That username is taken.' : 'Wrong username or password.');
+    } catch (err: unknown) {
+      const apiMsg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setMsg(apiMsg || (mode === 'up' ? 'Could not create account.' : 'Wrong username or password.'));
     } finally {
       setBusy(false);
     }
