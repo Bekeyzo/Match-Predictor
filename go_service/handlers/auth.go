@@ -34,16 +34,18 @@ func Register(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error hashing password"})
 	}
 
+	var created models.User
+	created.Username = user.Username
 	err = db.DB.QueryRow(
 		"INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, created_at",
 		user.Username, string(hashed),
-	).Scan(&user.ID, &user.CreatedAt)
+	).Scan(&created.ID, &created.CreatedAt)
 
 	if err != nil {
 		return c.JSON(http.StatusConflict, map[string]string{"error": "Username already exists"})
 	}
 
-	return c.JSON(http.StatusCreated, user)
+	return c.JSON(http.StatusCreated, created)
 }
 
 func Login(c echo.Context) error {
