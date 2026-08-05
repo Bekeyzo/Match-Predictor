@@ -541,3 +541,12 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
   /* nudge the whole rail so the peek sits inside the visible area */
   .feat-rail { padding-right: 24px; }
 }
+
+/* password show/hide toggle */
+.pw-wrap { position: relative; }
+.pw-field { width: 100%; padding-right: 44px; }
+.pw-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; padding: 4px; cursor: pointer;
+  color: var(--ink-3); display: grid; place-items: center;
+  transition: color .15s ease; }
+.pw-eye:hover { color: var(--purple); }
