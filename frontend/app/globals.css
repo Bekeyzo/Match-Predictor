@@ -529,3 +529,13 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 
 /* markets wrap once goals ladder is added */
 .markets { flex-wrap: wrap; row-gap: 18px; }
+
+/* swipe affordance on the featured rail */
+.feat-rail {
+  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+          mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+}
+@media (max-width: 640px) {
+  /* card slightly narrower than viewport so the next one peeks in */
+  .feat-card { width: 82vw; max-width: 260px; }
+}
