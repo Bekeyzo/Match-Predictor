@@ -63,11 +63,11 @@ export interface PredictionResult {
 }
 
 // Auth
-export const register = (username: string, email: string, password: string) =>
-  API.post('/register', { username, email, password });
+export const register = (email: string, password: string) =>
+  API.post('/register', { email, password });
 
-export const login = async (username: string, password: string) => {
-  const res = await API.post('/login', { username, password });
+export const login = async (email: string, password: string) => {
+  const res = await API.post('/login', { email, password });
   localStorage.setItem('token', res.data.token);
   return res.data;
 };

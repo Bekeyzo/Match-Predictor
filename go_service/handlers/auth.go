@@ -17,7 +17,6 @@ import (
 )
 
 type registerInput struct {
-	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -28,9 +27,6 @@ func Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
 
-	if len(user.Username) < 3 || len(user.Username) > 32 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Username must be 3-32 characters"})
-	}
 	if len(user.Password) < 8 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Password must be at least 8 characters"})
 	}
@@ -38,27 +34,30 @@ func Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Please enter a valid email"})
 	}
 
+	// Display name derived from the email local-part (not unique — email is the identity)
+	displayName := strings.Split(user.Email, "@")[0]
+
 	hashed, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error hashing password"})
 	}
 
 	var created models.User
-	created.Username = user.Username
+	created.Username = displayName
 	err = db.DB.QueryRow(
 		"INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, created_at",
-		user.Username, user.Email, string(hashed),
+		displayName, user.Email, string(hashed),
 	).Scan(&created.ID, &created.CreatedAt)
 
 	if err != nil {
-		return c.JSON(http.StatusConflict, map[string]string{"error": "Username already exists"})
+		return c.JSON(http.StatusConflict, map[string]string{"error": "An account with that email already exists"})
 	}
 
 	return c.JSON(http.StatusCreated, created)
 }
 
 type loginInput struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -70,8 +69,8 @@ func Login(c echo.Context) error {
 
 	var user models.User
 	err := db.DB.QueryRow(
-		"SELECT id, username, password FROM users WHERE username = $1",
-		input.Username,
+		"SELECT id, username, password FROM users WHERE email = $1",
+		input.Email,
 	).Scan(&user.ID, &user.Username, &user.Password)
 
 	if err != nil {

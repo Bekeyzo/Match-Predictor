@@ -27,20 +27,20 @@ export default function AuthCard({ heading, note, onSignedIn, hideWhenSignedIn }
   }, []);
 
   const submit = async () => {
-    if (!username || !password) { setMsg('Both fields, please.'); return; }
-    if (mode === 'up' && !email) { setMsg('Email is required to create an account.'); return; }
+    if (!email || !password) { setMsg('Email and password, please.'); return; }
     setBusy(true); setMsg('');
     try {
-      if (mode === 'up') await register(username, email, password);
-      await login(username, password);
-      localStorage.setItem('username', username);
-      setUser(username);
+      if (mode === 'up') await register(email, password);
+      const displayName = email.split('@')[0];
+      await login(email, password);
+      localStorage.setItem('username', displayName);
+      setUser(displayName);
       setPassword('');
       onSignedIn?.();
     } catch (err: unknown) {
       const apiMsg =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setMsg(apiMsg || (mode === 'up' ? 'Could not create account.' : 'Wrong username or password.'));
+      setMsg(apiMsg || (mode === 'up' ? 'Could not create account.' : 'Wrong email or password.'));
     } finally {
       setBusy(false);
     }
@@ -74,14 +74,9 @@ export default function AuthCard({ heading, note, onSignedIn, hideWhenSignedIn }
       <div className="side-title">{heading ?? (mode === 'in' ? 'Sign in' : 'Create account')}</div>
       <p className="side-note">{note ?? 'Predictions are free — you just need an account.'}</p>
 
-      <input className="field" placeholder="Username" value={username}
-             onChange={e => setUsername(e.target.value)}
+      <input className="field" type="email" placeholder="Email" value={email}
+             onChange={e => setEmail(e.target.value)}
              onKeyDown={e => e.key === 'Enter' && submit()} />
-      {mode === 'up' && (
-        <input className="field" type="email" placeholder="Email" value={email}
-               onChange={e => setEmail(e.target.value)}
-               onKeyDown={e => e.key === 'Enter' && submit()} />
-      )}
       <div className="pw-wrap">
       <input className="field pw-field" type={showPw ? 'text' : 'password'} placeholder="Password" value={password}
              onChange={e => setPassword(e.target.value)}
