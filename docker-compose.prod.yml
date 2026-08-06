@@ -57,6 +57,9 @@ services:
       PYTHON_SERVICE_URL: http://python_service:8001
       FOOTBALL_DATA_API_KEY: ${FOOTBALL_DATA_API_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESET_FROM_EMAIL: ${RESET_FROM_EMAIL}
+      FRONTEND_URL: ${FRONTEND_URL:-https://tehuti.net}
       CORS_ORIGINS: ${CORS_ORIGINS}
       PORT: 8080
     depends_on:
