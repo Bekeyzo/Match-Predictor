@@ -567,3 +567,31 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 .reset-card .field { width: 100%; margin-bottom: 16px; }
 .reset-card .btn-primary { width: 100%; }
 .reset-error { color: var(--away); font-size: 13px; margin: -6px 0 14px; }
+
+
+/* reset page fixes: button pill + eye centering */
+.reset-card .btn-primary {
+  width: 100%;
+  background: var(--purple);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 0;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.reset-card .btn-primary:hover { background: var(--purple-lt); }
+.reset-card .btn-primary:disabled { opacity: .5; cursor: default; }
+.reset-card .pw-wrap { position: relative; margin-bottom: 18px; }
+.reset-card .pw-field { margin-bottom: 0; }
+.reset-card .pw-eye {
+  position: absolute; top: 50%; right: 12px;
+  transform: translateY(-50%);
+  display: grid; place-items: center;
+  background: none; border: none; padding: 0;
+  color: var(--ink-3); cursor: pointer;
+  transition: color .15s ease;
+}
+.reset-card .pw-eye:hover { color: var(--purple-lt); }
