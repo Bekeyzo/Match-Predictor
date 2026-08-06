@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { logout } from '@/lib/api';
 import AuthModal from '@/components/AuthModal';
 
 export default function NavAuth() {
@@ -13,17 +12,11 @@ export default function NavAuth() {
 
   useEffect(() => { sync(); }, []);
 
-  const signOut = () => {
-    logout();
-    localStorage.removeItem('username');
-    setUser(null);
-  };
-
   if (user) {
     return (
-      <button className="nav-avatar" onClick={signOut} title={`${user} — sign out`}>
+      <a href="/profile" className="nav-avatar" title={`${user} — view profile`}>
         {user.slice(0, 1).toUpperCase()}
-      </button>
+      </a>
     );
   }
 

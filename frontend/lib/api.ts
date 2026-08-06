@@ -123,3 +123,9 @@ export const forgotPassword = (email: string) =>
 
 export const resetPassword = (token: string, password: string) =>
   API.post('/reset-password', { token, password });
+
+export const getMe = () =>
+  API.get('/me');
+
+export const updateName = (name: string) =>
+  API.put('/me/name', { name });
