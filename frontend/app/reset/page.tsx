@@ -44,7 +44,7 @@ function ResetForm() {
         <div className="aurora-blob aurora-1" />
         <div className="aurora-blob aurora-2" />
       </div>
-      <div className="reset-card">
+      <div className="side-card reset-card">
         <div className="reset-brand">TEHUTI.AI</div>
         {done ? (
           <>
@@ -79,7 +79,7 @@ function ResetForm() {
 
 export default function ResetPage() {
   return (
-    <Suspense fallback={<div className="reset-page"><div className="reset-card">Loading…</div></div>}>
+    <Suspense fallback={<div className="reset-page"><div className="side-card reset-card">Loading…</div></div>}>
       <ResetForm />
     </Suspense>
   );
