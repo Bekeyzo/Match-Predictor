@@ -85,6 +85,8 @@ func main() {
 	e.POST("/register", handlers.Register, authLimit)
 	e.POST("/login", handlers.Login, authLimit)
 	e.POST("/auth/google", handlers.GoogleAuth, authLimit)
+	e.POST("/forgot-password", handlers.ForgotPassword, authLimit)
+	e.POST("/reset-password", handlers.ResetPassword, authLimit)
 	e.GET("/leagues", handlers.GetLeagues)
 	e.GET("/fixtures/:league", handlers.GetFixtures)
 	e.GET("/featured", handlers.GetFeatured)

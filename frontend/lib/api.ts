@@ -117,3 +117,9 @@ export interface AccuracyStats {
 }
 
 export const getAccuracy = (): Promise<{ data: AccuracyStats }> => API.get('/accuracy');
+
+export const forgotPassword = (email: string) =>
+  API.post('/forgot-password', { email });
+
+export const resetPassword = (token: string, password: string) =>
+  API.post('/reset-password', { token, password });

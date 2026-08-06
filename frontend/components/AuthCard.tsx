@@ -105,6 +105,17 @@ export default function AuthCard({ heading, note, onSignedIn, hideWhenSignedIn }
       <button className="btn-link" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setMsg(''); }}>
         {mode === 'in' ? 'No account? Create one' : 'Already have one? Sign in'}
       </button>
+      {mode === 'in' && (
+        <button className="btn-link" onClick={async () => {
+          const target = prompt('Enter your account email for a reset link:') || '';
+          if (!target) return;
+          const { forgotPassword } = await import('@/lib/api');
+          try { await forgotPassword(target); } catch {}
+          setMsg('If that email has an account, a reset link is on its way.');
+        }}>
+          Forgot password?
+        </button>
+      )}
 
       <GoogleButton onSignedIn={() => {
         setUser(localStorage.getItem('username') || 'Account');
