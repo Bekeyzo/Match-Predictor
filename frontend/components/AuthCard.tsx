@@ -14,6 +14,7 @@ export default function AuthCard({ heading, note, onSignedIn, hideWhenSignedIn }
   const [user, setUser] = useState<string | null>(null);
   const [mode, setMode] = useState<'in' | 'up'>('in');
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -27,9 +28,10 @@ export default function AuthCard({ heading, note, onSignedIn, hideWhenSignedIn }
 
   const submit = async () => {
     if (!username || !password) { setMsg('Both fields, please.'); return; }
+    if (mode === 'up' && !email) { setMsg('Email is required to create an account.'); return; }
     setBusy(true); setMsg('');
     try {
-      if (mode === 'up') await register(username, password);
+      if (mode === 'up') await register(username, email, password);
       await login(username, password);
       localStorage.setItem('username', username);
       setUser(username);
@@ -75,6 +77,11 @@ export default function AuthCard({ heading, note, onSignedIn, hideWhenSignedIn }
       <input className="field" placeholder="Username" value={username}
              onChange={e => setUsername(e.target.value)}
              onKeyDown={e => e.key === 'Enter' && submit()} />
+      {mode === 'up' && (
+        <input className="field" type="email" placeholder="Email" value={email}
+               onChange={e => setEmail(e.target.value)}
+               onKeyDown={e => e.key === 'Enter' && submit()} />
+      )}
       <div className="pw-wrap">
       <input className="field pw-field" type={showPw ? 'text' : 'password'} placeholder="Password" value={password}
              onChange={e => setPassword(e.target.value)}

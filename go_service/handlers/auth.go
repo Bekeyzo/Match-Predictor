@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"match-predictor/db"
 	"match-predictor/models"
@@ -13,6 +14,7 @@ import (
 
 type registerInput struct {
 	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -28,6 +30,9 @@ func Register(c echo.Context) error {
 	if len(user.Password) < 8 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Password must be at least 8 characters"})
 	}
+	if !strings.Contains(user.Email, "@") || !strings.Contains(user.Email, ".") || len(user.Email) < 5 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Please enter a valid email"})
+	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -37,8 +42,8 @@ func Register(c echo.Context) error {
 	var created models.User
 	created.Username = user.Username
 	err = db.DB.QueryRow(
-		"INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, created_at",
-		user.Username, string(hashed),
+		"INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, created_at",
+		user.Username, user.Email, string(hashed),
 	).Scan(&created.ID, &created.CreatedAt)
 
 	if err != nil {

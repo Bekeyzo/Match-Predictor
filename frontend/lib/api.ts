@@ -63,8 +63,8 @@ export interface PredictionResult {
 }
 
 // Auth
-export const register = (username: string, password: string) =>
-  API.post('/register', { username, password });
+export const register = (username: string, email: string, password: string) =>
+  API.post('/register', { username, email, password });
 
 export const login = async (username: string, password: string) => {
   const res = await API.post('/login', { username, password });
