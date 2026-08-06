@@ -550,3 +550,21 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
   color: var(--ink-3); display: grid; place-items: center;
   transition: color .15s ease; }
 .pw-eye:hover { color: var(--purple); }
+
+/* reset password page */
+.reset-page { min-height: 80vh; display: grid; place-items: center; padding: 24px; }
+.reset-card {
+  position: relative; width: 100%; max-width: 400px;
+  background: var(--card); border: 1px solid var(--rule);
+  border-radius: 18px; padding: 32px 28px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.reset-brand {
+  font-size: 13px; font-weight: 600; letter-spacing: 2px;
+  color: var(--purple-lt); margin-bottom: 20px;
+}
+.reset-title { font-size: 24px; font-weight: 800; letter-spacing: -.5px; margin: 0 0 8px; }
+.reset-sub { color: var(--ink-3); font-size: 14px; line-height: 1.5; margin: 0 0 22px; }
+.reset-card .field { width: 100%; margin-bottom: 16px; }
+.reset-card .btn-primary { width: 100%; }
+.reset-error { color: var(--away); font-size: 13px; margin: -6px 0 14px; }
