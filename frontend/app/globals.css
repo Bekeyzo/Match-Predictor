@@ -388,6 +388,7 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 .nav-signin:hover { transform:translateY(-1px); filter:brightness(1.1); }
 
 .nav-avatar { width:30px; height:30px; border-radius:9px; border:0; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; line-height:1;
   background:var(--purple); color:#fff; font-family:inherit; font-weight:800; font-size:13px;
   transition:filter .16s ease; }
 .nav-avatar:hover { filter:brightness(1.12); }
