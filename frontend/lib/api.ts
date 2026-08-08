@@ -13,6 +13,21 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+// On 401 (dead/expired token), clear it and send the user to sign in
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export interface League {
   code: string;
   name: string;
