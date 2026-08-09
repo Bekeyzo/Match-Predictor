@@ -32,7 +32,7 @@ function ResetForm() {
       setDone(true);
     } catch (err: unknown) {
       const apiMsg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setMsg(apiMsg || 'Could not reset password.');
+      setMsg(apiMsg || 'This link may have expired or already been used. Request a new reset link and try again.');
     } finally {
       setBusy(false);
     }
