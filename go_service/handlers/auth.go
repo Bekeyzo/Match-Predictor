@@ -53,6 +53,25 @@ func Register(c echo.Context) error {
 		return c.JSON(http.StatusConflict, map[string]string{"error": "An account with that email already exists"})
 	}
 
+	// Generate a verification token and email a confirm link (non-fatal if it fails)
+	vb := make([]byte, 32)
+	if _, e := rand.Read(vb); e == nil {
+		vtoken := hex.EncodeToString(vb)
+		_, e2 := db.DB.Exec(
+			"INSERT INTO verification_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)",
+			created.ID, vtoken, time.Now().Add(24*time.Hour),
+		)
+		if e2 == nil {
+			base := os.Getenv("FRONTEND_URL")
+			if base == "" {
+				base = "https://www.tehuti.net"
+			}
+			if e3 := utils.SendVerificationEmail(user.Email, base+"/verify?token="+vtoken); e3 != nil {
+				c.Logger().Errorf("verification email failed: %v", e3)
+			}
+		}
+	}
+
 	return c.JSON(http.StatusCreated, created)
 }
 
@@ -180,4 +199,41 @@ func ResetPassword(c echo.Context) error {
 	db.DB.Exec("UPDATE password_resets SET used = TRUE WHERE token = $1", in.Token)
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "Password updated. You can sign in now."})
+}
+
+// VerifyEmail confirms an account via the emailed token, then sends a welcome email.
+func VerifyEmail(c echo.Context) error {
+	token := c.QueryParam("token")
+	if token == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing token"})
+	}
+
+	var userID int
+	var expiresAt time.Time
+	var used bool
+	err := db.DB.QueryRow(
+		"SELECT user_id, expires_at, used FROM verification_tokens WHERE token = $1",
+		token,
+	).Scan(&userID, &expiresAt, &used)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verification link"})
+	}
+	if used || time.Now().After(expiresAt) {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "This verification link has expired or been used"})
+	}
+
+	if _, err := db.DB.Exec("UPDATE users SET verified = TRUE WHERE id = $1", userID); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not verify account"})
+	}
+	db.DB.Exec("UPDATE verification_tokens SET used = TRUE WHERE token = $1", token)
+
+	// Welcome email — fire on successful verification (non-fatal)
+	var email string
+	if db.DB.QueryRow("SELECT email FROM users WHERE id = $1", userID).Scan(&email) == nil && email != "" {
+		if e := utils.SendWelcomeEmail(email); e != nil {
+			c.Logger().Errorf("welcome email failed: %v", e)
+		}
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "Email verified. You can now see predictions."})
 }

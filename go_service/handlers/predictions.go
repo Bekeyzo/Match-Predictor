@@ -20,6 +20,16 @@ func GetPrediction(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
 
+	// Gate: only verified accounts can see predictions
+	var verified bool
+	db.DB.QueryRow("SELECT verified FROM users WHERE id = $1", c.Get("user_id")).Scan(&verified)
+	if !verified {
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error":   "unverified",
+			"message": "Please verify your email to see predictions. Check your inbox for the confirmation link.",
+		})
+	}
+
 	// Build a unique cache key for this specific fixture
 	// So Arsenal vs Chelsea on 2026-07-16 in PL gets its own cache entry
 	cacheKey := fmt.Sprintf("prediction:%s:%s:%s:%s",
