@@ -144,3 +144,9 @@ export const getMe = () =>
 
 export const updateName = (name: string) =>
   API.put('/me/name', { name });
+
+export const verifyEmail = (token: string) =>
+  API.get('/verify', { params: { token } });
+
+export const resendVerification = () =>
+  API.post('/resend-verification');

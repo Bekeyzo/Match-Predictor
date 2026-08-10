@@ -237,3 +237,40 @@ func VerifyEmail(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "Email verified. You can now see predictions."})
 }
+
+// ResendVerification re-sends the verification email for the logged-in user.
+func ResendVerification(c echo.Context) error {
+	userID := c.Get("user_id")
+
+	var email string
+	var verified bool
+	err := db.DB.QueryRow("SELECT email, verified FROM users WHERE id = $1", userID).Scan(&email, &verified)
+	if err != nil || email == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No email on file"})
+	}
+	if verified {
+		return c.JSON(http.StatusOK, map[string]string{"message": "Already verified"})
+	}
+
+	vb := make([]byte, 32)
+	if _, e := rand.Read(vb); e != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not generate token"})
+	}
+	vtoken := hex.EncodeToString(vb)
+	if _, e := db.DB.Exec(
+		"INSERT INTO verification_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)",
+		userID, vtoken, time.Now().Add(24*time.Hour),
+	); e != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not create token"})
+	}
+
+	base := os.Getenv("FRONTEND_URL")
+	if base == "" {
+		base = "https://www.tehuti.net"
+	}
+	if e := utils.SendVerificationEmail(email, base+"/verify?token="+vtoken); e != nil {
+		c.Logger().Errorf("resend verification failed: %v", e)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not send email"})
+	}
+	return c.JSON(http.StatusOK, map[string]string{"message": "Verification email sent"})
+}

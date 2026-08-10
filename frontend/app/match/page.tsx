@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getPrediction, PredictionResult } from '@/lib/api';
+import { getPrediction, resendVerification, PredictionResult } from '@/lib/api';
 import AuthCard from '@/components/AuthCard';
 
 type WithForm = PredictionResult & { home_form?: string[]; away_form?: string[] };
@@ -44,6 +44,8 @@ function MatchContent() {
   const [cached, setCached] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [unverified, setUnverified] = useState(false);
+  const [resent, setResent] = useState(false);
   const [run, setRun] = useState(false);
 
   useEffect(() => {
@@ -52,10 +54,14 @@ function MatchContent() {
 
   const load = useCallback(() => {
     if (!home || !away || !date || !league) return;
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setUnverified(false);
     getPrediction(home, away, date, league)
       .then(res => { setP(res.data.prediction); setCached(res.data.cached); })
-      .catch(() => setError('Could not load this prediction. Please try again.'))
+      .catch((err: unknown) => {
+        const code = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+        if (code === 'unverified') setUnverified(true);
+        else setError('Could not load this prediction. Please try again.');
+      })
       .finally(() => setLoading(false));
   }, [home, away, date, league]);
 
@@ -119,6 +125,37 @@ function MatchContent() {
     <div>
       <div className="skel" style={{ height:180, marginBottom:14 }} />
       <div className="skel" style={{ height:240 }} />
+    </div>
+  );
+
+  if (unverified) return (
+    <div>
+      <div className="aurora">
+        <div className="aurora-blob aurora-1" />
+        <div className="aurora-blob aurora-2" />
+      </div>
+      <button className="back" onClick={() => history.back()}>← Back to fixtures</button>
+      <div className="gate">
+        <div className="gate-auth">
+          <div className="side-card">
+            <div className="side-title">Verify your email to see predictions</div>
+            <p className="side-note">
+              We sent a confirmation link to your email. Click it to unlock predictions across all 14 leagues.
+              Don't forget to check your spam folder.
+            </p>
+            <button
+              className="btn-primary"
+              style={{ marginTop: 14 }}
+              disabled={resent}
+              onClick={async () => {
+                try { await resendVerification(); setResent(true); } catch {}
+              }}
+            >
+              {resent ? 'Verification email sent ✓' : 'Resend verification email'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 

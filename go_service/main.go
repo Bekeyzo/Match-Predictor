@@ -88,6 +88,7 @@ func main() {
 	e.POST("/forgot-password", handlers.ForgotPassword, authLimit)
 	e.POST("/reset-password", handlers.ResetPassword, authLimit)
 	e.GET("/verify", handlers.VerifyEmail, authLimit)
+	e.POST("/resend-verification", middleware.AuthMiddleware(handlers.ResendVerification), authLimit)
 	e.GET("/leagues", handlers.GetLeagues)
 	e.GET("/fixtures/:league", handlers.GetFixtures)
 	e.GET("/featured", handlers.GetFeatured)
