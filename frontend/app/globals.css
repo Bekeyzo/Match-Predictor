@@ -283,6 +283,7 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 .form-w { background:var(--home); } .form-d { background:var(--draw); } .form-l { background:var(--away); }
 
 [data-theme="dark"] { --home:#22C55E; --draw:#EAB308; --away:#EF4444; }
+[data-theme="light"] { --home:#16A34A; --draw:#CA8A04; --away:#DC2626; }
 @media (prefers-reduced-motion: reduce) { .form-chip, .strip-seg, .called { animation:none !important; transition:none !important; opacity:1 !important; transform:none !important; } }
 /* ---------- two-column home ---------- */
 .wrap { max-width: 1140px; }
