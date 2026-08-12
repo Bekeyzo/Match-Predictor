@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getPrediction, resendVerification, PredictionResult } from '@/lib/api';
+import { getPrediction, resendVerification, getPredictionHistory, PredictionResult } from '@/lib/api';
 import AuthCard from '@/components/AuthCard';
 
 type WithForm = PredictionResult & { home_form?: string[]; away_form?: string[] };
@@ -38,6 +38,7 @@ function MatchContent() {
   const q = useSearchParams();
   const home = q.get('home') || '', away = q.get('away') || '';
   const date = q.get('date') || '', league = q.get('league') || '';
+  const stored = q.get('stored') === '1';
 
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [p, setP] = useState<WithForm | null>(null);
@@ -55,6 +56,19 @@ function MatchContent() {
   const load = useCallback(() => {
     if (!home || !away || !date || !league) return;
     setLoading(true); setError(''); setUnverified(false);
+    if (stored) {
+      getPredictionHistory(league, date)
+        .then(res => {
+          const items = res.data.predictions || [];
+          const match = items.find((it: { home_team: string; away_team: string }) =>
+            it.home_team === home && it.away_team === away);
+          if (match) { setP(match.prediction); setCached(false); }
+          else setError('That stored prediction could not be found.');
+        })
+        .catch(() => setError('Could not load this stored prediction.'))
+        .finally(() => setLoading(false));
+      return;
+    }
     getPrediction(home, away, date, league)
       .then(res => { setP(res.data.prediction); setCached(res.data.cached); })
       .catch((err: unknown) => {
@@ -63,9 +77,9 @@ function MatchContent() {
         else setError('Could not load this prediction. Please try again.');
       })
       .finally(() => setLoading(false));
-  }, [home, away, date, league]);
+  }, [home, away, date, league, stored]);
 
-  useEffect(() => { if (authed) load(); }, [authed, load]);
+  useEffect(() => { if (stored || authed) load(); }, [authed, load, stored]);
   useEffect(() => { if (p) { const t = setTimeout(() => setRun(true), 120); return () => clearTimeout(t); } }, [p]);
 
   const called = p?.predicted_result ?? '';
@@ -81,7 +95,7 @@ function MatchContent() {
     : '';
 
   /* ---------- not signed in: gate ---------- */
-  if (authed === false) {
+  if (authed === false && !stored) {
     return (
       <div>
         <div className="aurora">

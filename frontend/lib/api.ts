@@ -150,3 +150,9 @@ export const verifyEmail = (token: string) =>
 
 export const resendVerification = () =>
   API.post('/resend-verification');
+
+export const getPredictionDates = (league: string) =>
+  API.get('/predictions/dates', { params: { league } });
+
+export const getPredictionHistory = (league: string, date: string) =>
+  API.get('/predictions/history', { params: { league, date } });

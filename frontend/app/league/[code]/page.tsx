@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getFixtures, Fixture } from '@/lib/api';
+import { getFixtures, getPredictionDates, getPredictionHistory, Fixture } from '@/lib/api';
 
 const FLAG: Record<string, string> = {
   PL:'gb-eng', ELC:'gb-eng', PD:'es', PD2:'es', BL1:'de', BL2:'de',
@@ -32,6 +32,10 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [today, setToday] = useState('');
   const [loading, setLoading] = useState(true);
+  const [pastDates, setPastDates] = useState<string[]>([]);
+  const [pastIdx, setPastIdx] = useState(-1); // -1 = live view; 0+ = index into pastDates
+  const [pastPreds, setPastPreds] = useState<{ home_team: string; away_team: string; prediction: { predicted_result?: string; home_win_prob_pct?: number; draw_prob_pct?: number; away_win_prob_pct?: number } }[]>([]);
+  const [pastLoading, setPastLoading] = useState(false);
   const tilt = useTilt();
 
   useEffect(() => {
@@ -40,6 +44,31 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [code]);
+
+  useEffect(() => {
+    getPredictionDates(code)
+      .then(res => setPastDates(res.data.dates || []))
+      .catch(() => setPastDates([]));
+  }, [code]);
+
+  const activePastDate = pastIdx >= 0 ? pastDates[pastIdx] : null;
+
+  useEffect(() => {
+    if (!activePastDate) { setPastPreds([]); return; }
+    setPastLoading(true);
+    getPredictionHistory(code, activePastDate)
+      .then(res => setPastPreds(res.data.predictions || []))
+      .catch(() => setPastPreds([]))
+      .finally(() => setPastLoading(false));
+  }, [code, activePastDate]);
+
+  const openStored = (homeTeam: string, awayTeam: string) => {
+    if (!activePastDate) return;
+    const q = new URLSearchParams({
+      home: homeTeam, away: awayTeam, date: activePastDate, league: code, stored: '1',
+    });
+    router.push(`/match?${q}`);
+  };
 
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -90,13 +119,64 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
         </div>
       </div>
 
-      <p style={{ color:'var(--ink-2)', fontSize:14, margin:'14px 0 28px' }}>
+      <p style={{ color:'var(--ink-2)', fontSize:14, margin:'14px 0 14px' }}>
         {loading ? 'Loading fixtures…'
+          : pastIdx >= 0 ? 'Predicted before this matchday'
           : fixtures.length ? `Next ${fixtures.length} fixtures`
           : 'Nothing scheduled right now'}
       </p>
 
-      {loading ? (
+      {pastDates.length > 0 && (
+        <div className="md-stepper">
+          <button className="md-step-btn"
+                  disabled={pastIdx >= pastDates.length - 1}
+                  onClick={() => setPastIdx(i => Math.min(i + 1, pastDates.length - 1))}
+                  aria-label="Older matchday">◀</button>
+          <span className="md-step-label">
+            {pastIdx < 0
+              ? 'Current fixtures'
+              : new Date(pastDates[pastIdx]).toLocaleDateString('en-GB',
+                  { weekday:'short', day:'numeric', month:'short' })}
+          </span>
+          <button className="md-step-btn"
+                  disabled={pastIdx < 0}
+                  onClick={() => setPastIdx(i => i - 1)}
+                  aria-label="Newer matchday">▶</button>
+        </div>
+      )}
+
+      {pastIdx >= 0 ? (
+        pastLoading ? (
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            {Array.from({ length:4 }).map((_,i) => (
+              <div key={i} className="skel" style={{ height:66 }} />
+            ))}
+          </div>
+        ) : pastPreds.length === 0 ? (
+          <div className="state">No stored predictions for this matchday.</div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            {pastPreds.map((pp, i) => {
+              const r = pp.prediction?.predicted_result;
+              const verdict = r === 'H' ? pp.home_team
+                : r === 'A' ? pp.away_team : 'Draw';
+              return (
+                <div key={i} className="fx-row tilt"
+                     onMouseMove={tilt} onMouseLeave={resetTilt}
+                     onClick={() => openStored(pp.home_team, pp.away_team)}>
+                  <span className="tilt-sheen" />
+                  <div className="fx-teams">
+                    <div className="fx-team">{pp.home_team}</div>
+                    <div className="fx-team">{pp.away_team}</div>
+                  </div>
+                  <span className="fx-called">Called: {verdict}</span>
+                  <span className="fx-cta">View →</span>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : loading ? (
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {Array.from({ length:5 }).map((_,i) => (
             <div key={i} className="skel" style={{ height:66 }} />

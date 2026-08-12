@@ -612,3 +612,11 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 .profile-soon { border: 1px dashed var(--rule); border-radius: 12px; padding: 20px; text-align: center; }
 .profile-soon-title { font-size: 14px; font-weight: 700; color: var(--ink-2); margin-bottom: 4px; }
 .profile-soon-sub { font-size: 13px; color: var(--ink-3); }
+
+/* matchday stepper */
+.md-stepper { display:flex; align-items:center; gap:14px; margin:0 0 24px; }
+.md-step-btn { width:34px; height:34px; border-radius:9px; border:1px solid var(--rule); background:var(--card); color:var(--ink-2); cursor:pointer; font-size:13px; transition:border-color .15s, color .15s, opacity .15s; }
+.md-step-btn:hover:not(:disabled) { border-color:var(--purple-lt); color:var(--purple); }
+.md-step-btn:disabled { opacity:.35; cursor:default; }
+.md-step-label { font-size:14px; font-weight:600; color:var(--ink-1); min-width:120px; text-align:center; }
+.fx-called { font-size:13px; color:var(--purple); font-weight:600; margin-left:auto; padding-right:12px; }
