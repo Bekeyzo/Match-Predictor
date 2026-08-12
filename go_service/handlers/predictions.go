@@ -86,6 +86,16 @@ func GetPrediction(c echo.Context) error {
 	resultJSON, _ := json.Marshal(result)
 	db.RedisClient.Set(db.Ctx, cacheKey, resultJSON, 6*time.Hour)
 
+	// Store the prediction so it can be viewed later (past matchdays).
+	// ON CONFLICT DO NOTHING keeps the FIRST prediction for a fixture —
+	// a later re-prediction with newer data can't overwrite it.
+	db.DB.Exec(
+		`INSERT INTO predictions (home_team, away_team, league_code, match_date, prediction)
+		 VALUES ($1, $2, $3, $4, $5)
+		 ON CONFLICT (league_code, match_date, home_team, away_team) DO NOTHING`,
+		req.HomeTeam, req.AwayTeam, req.LeagueCode, req.MatchDate, resultJSON,
+	)
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"prediction": result,
 		"cached":     false,

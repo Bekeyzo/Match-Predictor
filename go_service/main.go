@@ -93,6 +93,8 @@ func main() {
 	e.GET("/fixtures/:league", handlers.GetFixtures)
 	e.GET("/featured", handlers.GetFeatured)
 	e.GET("/accuracy", handlers.GetAccuracy)
+	e.GET("/predictions/dates", handlers.GetPredictionDates)
+	e.GET("/predictions/history", handlers.GetPredictionHistory)
 
 	// Protected
 	e.POST("/predict", middleware.AuthMiddleware(handlers.GetPrediction))
