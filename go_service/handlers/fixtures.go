@@ -103,6 +103,22 @@ func GetFixtures(c echo.Context) error {
 		source = "openfootball"
 	}
 
+	// Keep only fixtures within the next 7 days (avoid showing a second matchday out)
+	cutoff := time.Now().AddDate(0, 0, 7)
+	startOfToday := time.Now().Truncate(24 * time.Hour)
+	kept := make([]models.Fixture, 0, len(matches))
+	for _, m := range matches {
+		t, err := time.Parse(time.RFC3339, m.UtcDate)
+		if err != nil {
+			kept = append(kept, m) // keep if we can't parse, rather than silently drop
+			continue
+		}
+		if !t.Before(startOfToday) && t.Before(cutoff) {
+			kept = append(kept, m)
+		}
+	}
+	matches = kept
+
 	payload := map[string]interface{}{
 		"date":     today,
 		"league":   leagueCode,
