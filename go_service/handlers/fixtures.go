@@ -37,9 +37,11 @@ func GetLeagues(c echo.Context) error {
 
 // fetchFootballDataOrg gets fixtures from the primary source.
 func fetchFootballDataOrg(leagueCode, apiKey string) ([]models.Fixture, error) {
+	today := time.Now().Format("2006-01-02")
+	weekOut := time.Now().AddDate(0, 0, 7).Format("2006-01-02")
 	url := fmt.Sprintf(
-		"https://api.football-data.org/v4/competitions/%s/matches?status=SCHEDULED",
-		leagueCode,
+		"https://api.football-data.org/v4/competitions/%s/matches?dateFrom=%s&dateTo=%s",
+		leagueCode, today, weekOut,
 	)
 
 	req, err := http.NewRequest("GET", url, nil)
