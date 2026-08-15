@@ -91,18 +91,28 @@ func GetFixtures(c echo.Context) error {
 	source := "football-data.org"
 
 	matches, err := fetchFootballDataOrg(leagueCode, apiKey)
-	if err != nil {
-		c.Logger().Warnf("fixtures: %s primary failed (%v) — trying openfootball", leagueCode, err)
-		fallback, _, ofErr := fetchOpenfootball(leagueCode)
-		if ofErr != nil {
-			c.Logger().Warnf("fixtures: %s fallback failed too (%v)", leagueCode, ofErr)
-			return c.JSON(http.StatusOK, map[string]interface{}{
-				"date": today, "league": leagueCode,
-				"fixtures": []models.Fixture{}, "source": "none",
-			})
+	if err != nil || len(matches) == 0 {
+		if err != nil {
+			c.Logger().Warnf("fixtures: %s primary failed (%v) — trying openfootball", leagueCode, err)
 		}
-		matches = fallback
-		source = "openfootball"
+		fallback, _, ofErr := fetchOpenfootball(leagueCode)
+		if ofErr == nil && len(fallback) > 0 {
+			matches = fallback
+			source = "openfootball"
+		} else {
+			// openfootball errored OR returned empty — try API-Football as the last resort
+			afFixtures, afSource, afErr := fetchApiFootball(leagueCode)
+			if afErr == nil && len(afFixtures) > 0 {
+				matches = afFixtures
+				source = afSource
+			} else {
+				c.Logger().Warnf("fixtures: %s all sources empty (of=%v af=%v)", leagueCode, ofErr, afErr)
+				return c.JSON(http.StatusOK, map[string]interface{}{
+					"date": today, "league": leagueCode,
+					"fixtures": []models.Fixture{}, "source": "none",
+				})
+			}
+		}
 	}
 
 	// Keep only fixtures within the next 7 days (avoid showing a second matchday out)
