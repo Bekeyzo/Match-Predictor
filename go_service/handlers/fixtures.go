@@ -101,7 +101,7 @@ func GetFixtures(c echo.Context) error {
 			source = "openfootball"
 		} else {
 			// openfootball errored OR returned empty — try API-Football as the last resort
-			afFixtures, afSource, afErr := fetchApiFootball(leagueCode)
+			afFixtures, afSource, afErr := fetchFootballDataCoUk(leagueCode)
 			if afErr == nil && len(afFixtures) > 0 {
 				matches = afFixtures
 				source = afSource
