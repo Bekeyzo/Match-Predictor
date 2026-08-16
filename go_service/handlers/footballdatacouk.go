@@ -30,9 +30,11 @@ func fetchFootballDataCoUk(leagueCode string) ([]models.Fixture, string, error) 
 
 	fmt.Printf("DEBUG fdcouk: called for %s div=%s\n", leagueCode, div)
 	req, _ := http.NewRequest("GET", "https://www.football-data.co.uk/fixtures.csv", nil)
-	client := &http.Client{Timeout: 10 * time.Second}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; TehutiBot/1.0)")
+	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
+		fmt.Printf("DEBUG fdcouk: %s fetch error: %v\n", leagueCode, err)
 		return nil, "", err
 	}
 	defer resp.Body.Close()
