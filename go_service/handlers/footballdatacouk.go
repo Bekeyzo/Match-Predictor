@@ -49,8 +49,15 @@ func fetchFootballDataCoUk(leagueCode string) ([]models.Fixture, string, error) 
 			first = false
 			continue
 		}
+		line = strings.TrimRight(line, "\r")
 		cols := strings.Split(line, ",")
-		if len(cols) < 5 || cols[0] != div {
+		if len(cols) < 5 {
+			continue
+		}
+		for i := range cols {
+			cols[i] = strings.TrimSpace(cols[i])
+		}
+		if cols[0] != div {
 			continue
 		}
 		// cols: Div, Date (dd/mm/yyyy), Time (HH:MM), HomeTeam, AwayTeam
