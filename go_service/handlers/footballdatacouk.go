@@ -28,6 +28,7 @@ func fetchFootballDataCoUk(leagueCode string) ([]models.Fixture, string, error) 
 		return nil, "", fmt.Errorf("no football-data.co.uk div for %s", leagueCode)
 	}
 
+	fmt.Printf("DEBUG fdcouk: called for %s div=%s\n", leagueCode, div)
 	req, _ := http.NewRequest("GET", "https://www.football-data.co.uk/fixtures.csv", nil)
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
@@ -81,5 +82,6 @@ func fetchFootballDataCoUk(leagueCode string) ([]models.Fixture, string, error) 
 	if err := scanner.Err(); err != nil {
 		return nil, "", err
 	}
+	fmt.Printf("DEBUG fdcouk: %s matched %d fixtures\n", leagueCode, len(fixtures))
 	return fixtures, "football-data.co.uk", nil
 }
