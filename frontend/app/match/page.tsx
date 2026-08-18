@@ -181,6 +181,19 @@ function MatchContent() {
   const verdict = called === 'H' ? `${p.home_team} to win`
     : called === 'A' ? `${p.away_team} to win` : 'Honours even — a draw';
 
+  // Model's pick with confidence tier (gap between top two outcomes)
+  const outcomes = [
+    { label: `${p.home_team} to win`, v: p.home_win_prob_pct },
+    { label: 'a draw', v: p.draw_prob_pct },
+    { label: `${p.away_team} to win`, v: p.away_win_prob_pct },
+  ].sort((a, b) => b.v - a.v);
+  const pickGap = outcomes[0].v - outcomes[1].v;
+  const pickTier = pickGap >= 15 ? 'strong' : pickGap >= 5 ? 'lean' : 'close';
+  const pickChip = pickTier === 'strong' ? 'Strong pick'
+    : pickTier === 'lean' ? 'Model leans this way' : 'Close call';
+  const pickLabel = outcomes[0].label;
+  const pickPct = outcomes[0].v;
+
   return (
     <div>
       <div className="aurora">
@@ -229,8 +242,15 @@ function MatchContent() {
             <div className={`strip-seg${called==='A'?' on':''}`}
                  style={{ width: run ? `${p.away_win_prob_pct}%` : 0, background:'var(--away)', transitionDelay:'.14s' }} />
           </div>
-          <div className={`called ${run ? 'in' : ''}`}>
-            <span className="chip">{topPct.toFixed(0)}%</span> Model calls it — {verdict}
+          <div className={`pick-card pick-${pickTier} ${run ? 'in' : ''}`}>
+            <div className="pick-head">
+              <span className="pick-eyebrow">MODEL&rsquo;S PICK</span>
+              <span className="pick-conf">{pickChip}</span>
+            </div>
+            <div className="pick-body">
+              <span className="pick-label">{pickLabel}</span>
+              <span className="pick-pct">{pickPct.toFixed(0)}%</span>
+            </div>
           </div>
         </div>
 
