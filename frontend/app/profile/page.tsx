@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/navigation';
 import { getMe, updateName, logout } from '@/lib/api';
 
@@ -43,7 +44,7 @@ export default function ProfilePage() {
     : '—';
 
   if (loading) {
-    return <div className="wrap"><div className="skel" style={{ height: 200, marginTop: 40 }} /></div>;
+    return <div className="wrap"><Spinner block label="Loading your profile…" /></div>;
   }
 
   return (

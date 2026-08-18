@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
+import Spinner from '@/components/Spinner';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { resetPassword } from '@/lib/api';
 
@@ -79,7 +80,7 @@ function ResetForm() {
 
 export default function ResetPage() {
   return (
-    <Suspense fallback={<div className="reset-page"><div className="side-card reset-card">Loading…</div></div>}>
+    <Suspense fallback={<div className="reset-page"><div className="side-card reset-card"><Spinner block label="Loading…" /></div></div>}>
       <ResetForm />
     </Suspense>
   );

@@ -621,3 +621,17 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 .md-step-btn:disabled { opacity:.35; cursor:default; }
 .md-step-label { font-size:14px; font-weight:600; color:var(--ink-1); min-width:120px; text-align:center; }
 .fx-called { font-size:13px; color:var(--purple); font-weight:600; margin-left:auto; padding-right:12px; }
+
+/* Tehuti hourglass loading spinner */
+.tehuti-hourglass { color: var(--purple); animation: hourglass-flip 1.2s ease-in-out infinite; transform-origin: center; }
+@keyframes hourglass-flip {
+  0%, 40%   { transform: rotate(0deg); }
+  60%, 100% { transform: rotate(180deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tehuti-hourglass { animation: hourglass-fade 1.4s ease-in-out infinite; }
+  @keyframes hourglass-fade { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+}
+.spinner-block { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 48px 0; }
+.spinner-inline { display: inline-flex; align-items: center; gap: 10px; }
+.spinner-label { font-size: 14px; color: var(--ink-2); letter-spacing: 0.3px; }

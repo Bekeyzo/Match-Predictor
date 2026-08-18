@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, use, useCallback } from 'react';
+import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/navigation';
 import { getFixtures, getPredictionDates, getPredictionHistory, Fixture } from '@/lib/api';
 
@@ -147,11 +148,7 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
 
       {pastIdx >= 0 ? (
         pastLoading ? (
-          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            {Array.from({ length:4 }).map((_,i) => (
-              <div key={i} className="skel" style={{ height:66 }} />
-            ))}
-          </div>
+          <Spinner block label="Loading predictions…" />
         ) : pastPreds.length === 0 ? (
           <div className="state">No stored predictions for this matchday.</div>
         ) : (
@@ -177,11 +174,7 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
           </div>
         )
       ) : loading ? (
-        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-          {Array.from({ length:5 }).map((_,i) => (
-            <div key={i} className="skel" style={{ height:66 }} />
-          ))}
-        </div>
+        <Spinner block label="Loading fixtures…" />
       ) : days.length === 0 ? (
         <div className="state">No upcoming fixtures for this competition.</div>
       ) : (

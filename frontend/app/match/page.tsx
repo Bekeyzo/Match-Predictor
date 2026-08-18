@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, Suspense, useCallback } from 'react';
+import Spinner from '@/components/Spinner';
 import { useSearchParams } from 'next/navigation';
 import { getPrediction, resendVerification, getPredictionHistory, PredictionResult } from '@/lib/api';
 import AuthCard from '@/components/AuthCard';
@@ -136,10 +137,7 @@ function MatchContent() {
   }
 
   if (authed === null || loading) return (
-    <div>
-      <div className="skel" style={{ height:180, marginBottom:14 }} />
-      <div className="skel" style={{ height:240 }} />
-    </div>
+    <Spinner block label="Loading prediction…" />
   );
 
   if (unverified) return (
@@ -290,7 +288,7 @@ function MatchContent() {
 
 export default function MatchPage() {
   return (
-    <Suspense fallback={<div className="skel" style={{ height:400 }} />}>
+    <Suspense fallback={<Spinner block label="Loading…" />}>
       <MatchContent />
     </Suspense>
   );

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
+import Spinner from '@/components/Spinner';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { verifyEmail } from '@/lib/api';
 
@@ -42,7 +43,7 @@ function VerifyInner() {
 
 export default function VerifyPage() {
   return (
-    <Suspense fallback={<div className="reset-page"><div className="reset-card">Loading…</div></div>}>
+    <Suspense fallback={<div className="reset-page"><div className="reset-card"><Spinner block label="Loading…" /></div></div>}>
       <VerifyInner />
     </Suspense>
   );
