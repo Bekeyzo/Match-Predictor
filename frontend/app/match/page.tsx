@@ -186,6 +186,10 @@ function MatchContent() {
     { label: `${p.home_team} to win`, v: p.home_win_prob_pct },
     { label: 'a draw', v: p.draw_prob_pct },
     { label: `${p.away_team} to win`, v: p.away_win_prob_pct },
+    { label: 'Over 1.5 goals', v: p.prob_over_1_5_pct },
+    { label: 'Over 2.5 goals', v: p.prob_over_2_5_pct },
+    { label: 'Over 3.5 goals', v: p.prob_over_3_5_pct },
+    { label: 'Both teams to score', v: p.btts_prob_pct },
   ].sort((a, b) => b.v - a.v);
   const pickGap = outcomes[0].v - outcomes[1].v;
   const pickTier = pickGap >= 15 ? 'strong' : pickGap >= 5 ? 'lean' : 'close';
