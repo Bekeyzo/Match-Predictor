@@ -45,30 +45,47 @@ def load_saved_model(league_code: str):
 # pair, we reduce BOTH sides to a canonical core and match on that.
 # Works across all leagues and survives promotions.
 # ─────────────────────────────────────────────
+# Only TRUE noise — corporate/legal suffixes and generic filler.
+# Deliberately NOT included: "united", "city", "town", "athletic", "albion",
+# "wanderers", "rovers", etc. — those DISTINGUISH clubs in the same city
+# (Manchester United vs Manchester City), so stripping them causes collisions.
 _NOISE_WORDS = {
     "fc", "cf", "afc", "sc", "ac", "as", "ss", "us", "rc", "cd",
-    "club", "calcio", "united", "city", "town", "hove", "albion",
-    "hotspur", "wanderers", "athletic", "atletico", "real", "royal",
-    "sporting", "olympique", "deportivo",
+    "club", "calcio", "sporting", "olympique", "deportivo",
 }
 
 
-def _canon(name: str) -> str:
+_PREFIX_ALIASES = {
+    "man": "manchester",
+    "wolves": "wolverhampton",
+    "spurs": "tottenham",
+    "nottm": "nottingham",
+    "sheff": "sheffield",
+}
+
+
+def _tokens(name: str) -> frozenset:
     """
-    Reduce any team name to a comparable core:
-    lowercase, accents removed, noise words dropped, alphanumerics only.
-    "FC Bayern München" -> "bayern"
+    Reduce a team name to a SET of meaningful tokens (not a concatenated
+    string), so "Man United" and "Manchester United FC" share
+    {manchester, united}. Distinguishing words like "united"/"city" are
+    KEPT — they separate two clubs in the same city.
     """
-    # Strip accents: ü -> u, é -> e
     name = unicodedata.normalize("NFKD", name)
     name = "".join(c for c in name if not unicodedata.combining(c))
     name = name.lower()
-
-    # Keep only letters/digits/spaces
     name = "".join(c if c.isalnum() or c.isspace() else " " for c in name)
+    toks = set()
+    for t in name.split():
+        if not t or t in _NOISE_WORDS:
+            continue
+        toks.add(_PREFIX_ALIASES.get(t, t))
+    return frozenset(toks)
 
-    tokens = [t for t in name.split() if t and t not in _NOISE_WORDS]
-    return "".join(tokens)
+
+def _canon(name: str) -> str:
+    """Legacy string form (kept for callers): sorted tokens joined."""
+    return "".join(sorted(_tokens(name)))
 
 
 def build_name_index(all_data: pd.DataFrame) -> dict:
@@ -85,17 +102,28 @@ def build_name_index(all_data: pd.DataFrame) -> dict:
 
 def resolve_team(org_name: str, index: dict) -> str:
     """
-    Translate a football-data.org name to the matching CSV name.
-    Falls back to the raw name if nothing matches (which yields zeros —
-    the honest signal that this team has no history in the data).
+    Translate a football-data.org name to the matching CSV name using
+    TOKEN-SET overlap, so "Manchester United FC" -> "Man United" and
+    "Manchester City FC" -> "Man City" resolve to DIFFERENT teams.
     """
-    key = _canon(org_name)
-    if key in index:
-        return index[key]
-    # Partial fallback: does any indexed key contain ours, or vice versa?
-    for canon_key, csv_name in index.items():
-        if canon_key and (canon_key in key or key in canon_key):
-            return csv_name
+    want = _tokens(org_name)
+    if not want:
+        return org_name
+    best_name = None
+    best_score = 0.0
+    for csv_name in index.values():
+        have = _tokens(csv_name)
+        if not have:
+            continue
+        inter = want & have
+        smaller = min(len(want), len(have))
+        if len(inter) == smaller:
+            score = len(inter) / max(len(want), len(have))
+            if score > best_score:
+                best_score = score
+                best_name = csv_name
+    if best_name is not None:
+        return best_name
     return org_name
 
 
