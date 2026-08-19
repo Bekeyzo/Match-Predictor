@@ -55,6 +55,13 @@ _NOISE_WORDS = {
 }
 
 
+# City/place tokens shared by multiple clubs — these alone can't justify a
+# match (e.g. "Barcelona" is in both FC Barcelona and Espanyol de Barcelona).
+_PLACE_TOKENS = {
+    "barcelona", "madrid", "manchester", "sheffield", "london",
+    "nottingham", "bilbao", "sevilla", "roma", "milano", "torino",
+}
+
 _PREFIX_ALIASES = {
     "man": "manchester",
     "wolves": "wolverhampton",
@@ -102,10 +109,40 @@ def build_name_index(all_data: pd.DataFrame) -> dict:
 
 def resolve_team(org_name: str, index: dict) -> str:
     """
-    Translate a football-data.org name to the matching CSV name using
-    TOKEN-SET overlap, so "Manchester United FC" -> "Man United" and
-    "Manchester City FC" -> "Man City" resolve to DIFFERENT teams.
+    Translate a football-data.org name to the matching CSV name.
+
+    Strategy:
+      1. An explicit map pins the genuinely ambiguous famous clubs (two clubs
+         sharing a city, or names that don't share tokens with the CSV form).
+         A value of None means "known to have no data" -> honest zeros.
+      2. Otherwise, TOKEN-SET containment: the smaller name's tokens must be
+         fully contained in the larger, AND neither side may carry a
+         distinguishing identity token (a non-place token) the other lacks.
+         So "FC Barcelona"->"Barcelona" (only a shared place, no extra identity)
+         but "Espanyol de Barcelona" never matches "Barcelona" (extra identity
+         "espanyol"), and "Man United" never matches "Man City".
     """
+    # 1. Explicit pins for ambiguous / non-token-sharing clubs.
+    explicit = {
+        "manchester united fc": "Man United",
+        "manchester city fc": "Man City",
+        "atletico madrid": "Ath Madrid",
+        "atletico de madrid": "Ath Madrid",
+        "club atletico de madrid": "Ath Madrid",
+        "fc barcelona": "Barcelona",
+        "rcd espanyol de barcelona": "Espanyol",
+        "rcd espanyol": "Espanyol",
+        "espanyol": "Espanyol",
+    }
+    pin = explicit.get(org_name.strip().lower())
+    if pin is not None:
+        # Only use the pin if that CSV name actually exists in this league's
+        # index; otherwise fall through (pin may be for a team with no data).
+        if pin in index.values():
+            return pin
+        # pinned name not in data -> honest no-match (zeros)
+        return org_name
+
     want = _tokens(org_name)
     if not want:
         return org_name
@@ -117,14 +154,21 @@ def resolve_team(org_name: str, index: dict) -> str:
             continue
         inter = want & have
         smaller = min(len(want), len(have))
-        if len(inter) == smaller:
-            score = len(inter) / max(len(want), len(have))
-            if score > best_score:
-                best_score = score
-                best_name = csv_name
-    if best_name is not None:
-        return best_name
-    return org_name
+        if len(inter) != smaller:
+            continue
+        # Neither side may carry an identity (non-place) token the other lacks.
+        want_id = want - _PLACE_TOKENS
+        have_id = have - _PLACE_TOKENS
+        if want_id ^ have_id:
+            continue
+        # And the overlap must include at least one real token (guard).
+        if not inter:
+            continue
+        score = len(inter) / max(len(want), len(have))
+        if score > best_score:
+            best_score = score
+            best_name = csv_name
+    return best_name if best_name is not None else org_name
 
 
 # ─────────────────────────────────────────────
