@@ -124,8 +124,10 @@ def resolve_team(org_name: str, index: dict) -> str:
     """
     # 1. Explicit pins for ambiguous / non-token-sharing clubs.
     explicit = {
+        # England
         "manchester united fc": "Man United",
         "manchester city fc": "Man City",
+        # Spain
         "atletico madrid": "Ath Madrid",
         "atletico de madrid": "Ath Madrid",
         "club atletico de madrid": "Ath Madrid",
@@ -133,6 +135,55 @@ def resolve_team(org_name: str, index: dict) -> str:
         "rcd espanyol de barcelona": "Espanyol",
         "rcd espanyol": "Espanyol",
         "espanyol": "Espanyol",
+        # France (Ligue 1) — official long names -> CSV short names
+        "olympique de marseille": "Marseille",
+        "paris saint-germain fc": "Paris SG",
+        "paris saint germain fc": "Paris SG",
+        "rc strasbourg alsace": "Strasbourg",
+        "racing club de lens": "Lens",
+        "aj auxerre": "Auxerre",
+        "stade brestois 29": "Brest",
+        "angers sco": "Angers",
+        "lille osc": "Lille",
+        "stade rennais fc 1901": "Rennes",
+        "stade rennais fc": "Rennes",
+        "olympique lyonnais": "Lyon",
+        "ogc nice": "Nice",
+        "toulouse fc": "Toulouse",
+        "fc lorient": "Lorient",
+        "as monaco fc": "Monaco",
+        "le havre ac": "Le Havre",
+        "fc metz": "Metz",
+        "fc nantes": "Nantes",
+        # Netherlands (Eredivisie)
+        "feyenoord rotterdam": "Feyenoord",
+        "az": "AZ Alkmaar",
+        "fortuna sittard": "For Sittard",
+        "sc cambuur-leeuwarden": "Cambuur",
+        "sc cambuur": "Cambuur",
+        "nec": "Nijmegen",
+        "sbv excelsior": "Excelsior",
+        "psv": "PSV Eindhoven",
+        "sc heerenveen": "Heerenveen",
+        "pec zwolle": "Zwolle",
+        "fc groningen": "Groningen",
+        "fc utrecht": "Utrecht",
+        "fc twente": "Twente",
+        "go ahead eagles": "Go Ahead Eagles",
+        # Championship (England) — long -> CSV short
+        "charlton athletic fc": "Charlton",
+        "derby county fc": "Derby",
+        "cardiff city fc": "Cardiff",
+        "queens park rangers fc": "QPR",
+        "birmingham city fc": "Birmingham",
+        "bristol city fc": "Bristol City",
+        "west bromwich albion fc": "West Brom",
+        "blackburn rovers fc": "Blackburn",
+        "swansea city afc": "Swansea",
+        "norwich city fc": "Norwich",
+        "stoke city fc": "Stoke",
+        "preston north end fc": "Preston",
+        "middlesbrough fc": "Middlesbrough",
     }
     pin = explicit.get(org_name.strip().lower())
     if pin is not None:
