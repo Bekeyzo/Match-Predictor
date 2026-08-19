@@ -670,3 +670,12 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
   color: var(--purple-lt, #A79FF0); flex-shrink: 0;
 }
 .pick-close .pick-pct { color: var(--ink-2); }
+
+/* League empty-fixtures state */
+.empty-fixtures {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 12px; padding: 56px 24px; color: var(--ink-2, #8b86a8);
+}
+.empty-fixtures svg { color: var(--purple, #7F77DD); opacity: 0.7; }
+.empty-title { font-family: var(--display, sans-serif); font-weight: 700; font-size: 20px; color: var(--ink-1, #F4F2FB); }
+.empty-sub { font-size: 14px; line-height: 1.5; max-width: 340px; }

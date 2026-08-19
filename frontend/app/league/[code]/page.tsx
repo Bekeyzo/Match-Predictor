@@ -176,7 +176,14 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
       ) : loading ? (
         <Spinner block label="Loading fixtures…" />
       ) : days.length === 0 ? (
-        <div className="state">No upcoming fixtures for this competition.</div>
+        <div className="empty-fixtures">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
+          <div className="empty-title">No fixtures in the next 7 days</div>
+          <div className="empty-sub">This league may be between matchdays, or its season hasn&rsquo;t started yet. Check back closer to matchday.</div>
+        </div>
       ) : (
         days.map(day => (
           <section key={day} className="reveal">
