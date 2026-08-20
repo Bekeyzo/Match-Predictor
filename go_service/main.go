@@ -95,6 +95,7 @@ func main() {
 	e.GET("/accuracy", handlers.GetAccuracy)
 	e.GET("/predictions/dates", handlers.GetPredictionDates)
 	e.GET("/predictions/history", handlers.GetPredictionHistory)
+	e.POST("/grade", middleware.AuthMiddleware(handlers.GradeLeague))
 
 	// Protected
 	e.POST("/predict", middleware.AuthMiddleware(handlers.GetPrediction))

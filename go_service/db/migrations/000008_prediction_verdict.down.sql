@@ -1,0 +1,2 @@
+ALTER TABLE predictions DROP COLUMN IF EXISTS result;
+ALTER TABLE predictions DROP COLUMN IF EXISTS verdict;
