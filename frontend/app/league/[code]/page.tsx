@@ -4,6 +4,19 @@ import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/navigation';
 import { getFixtures, getPredictionDates, getPredictionHistory, Fixture } from '@/lib/api';
 
+function strongPickLabel(pick: string | undefined, home: string, away: string): string {
+  switch (pick) {
+    case 'home': return `${home} to win`;
+    case 'away': return `${away} to win`;
+    case 'draw': return 'Draw';
+    case 'over_1_5': return 'Over 1.5 goals';
+    case 'over_2_5': return 'Over 2.5 goals';
+    case 'over_3_5': return 'Over 3.5 goals';
+    case 'btts': return 'Both teams to score';
+    default: return '';
+  }
+}
+
 const FLAG: Record<string, string> = {
   PL:'gb-eng', ELC:'gb-eng', PD:'es', PD2:'es', BL1:'de', BL2:'de',
   SA:'it', SB:'it', FL1:'fr', FL2:'fr', DED:'nl', PPL:'pt', PPL2:'pt',
@@ -35,7 +48,7 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
   const [loading, setLoading] = useState(true);
   const [pastDates, setPastDates] = useState<string[]>([]);
   const [pastIdx, setPastIdx] = useState(-1); // -1 = live view; 0+ = index into pastDates
-  const [pastPreds, setPastPreds] = useState<{ home_team: string; away_team: string; prediction: { predicted_result?: string; home_win_prob_pct?: number; draw_prob_pct?: number; away_win_prob_pct?: number } }[]>([]);
+  const [pastPreds, setPastPreds] = useState<{ home_team: string; away_team: string; prediction: { predicted_result?: string; home_win_prob_pct?: number; draw_prob_pct?: number; away_win_prob_pct?: number }; verdict?: string | null; result?: { pick?: string; home_goals?: number; away_goals?: number } | null }[]>([]);
   const [pastLoading, setPastLoading] = useState(false);
   const tilt = useTilt();
 
@@ -153,10 +166,24 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
           <div className="state">No stored predictions for this matchday.</div>
         ) : (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            {(() => {
+              const right = pastPreds.filter(p => p.verdict === 'right').length;
+              const wrong = pastPreds.filter(p => p.verdict === 'wrong').length;
+              if (right + wrong === 0) return null;
+              return (
+                <div className="matchday-tally">
+                  Model this matchday: <span className="tally-right">{right} ✓</span>
+                  <span className="tally-sep">·</span>
+                  <span className="tally-wrong">{wrong} ✗</span>
+                </div>
+              );
+            })()}
             {pastPreds.map((pp, i) => {
-              const r = pp.prediction?.predicted_result;
-              const verdict = r === 'H' ? pp.home_team
-                : r === 'A' ? pp.away_team : 'Draw';
+              const res = pp.result as { pick?: string; home_goals?: number; away_goals?: number } | null;
+              const pick = res?.pick;
+              const pickText = strongPickLabel(pick, pp.home_team, pp.away_team);
+              const score = res && res.home_goals != null && res.away_goals != null
+                ? `${res.home_goals}–${res.away_goals}` : null;
               return (
                 <div key={i} className="fx-row tilt"
                      onMouseMove={tilt} onMouseLeave={resetTilt}
@@ -166,7 +193,18 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
                     <div className="fx-team">{pp.home_team}</div>
                     <div className="fx-team">{pp.away_team}</div>
                   </div>
-                  <span className="fx-called">Called: {verdict}</span>
+                  <div className="fx-verdict-wrap">
+                    {pickText && <span className="fx-pick">Pick: {pickText}</span>}
+                    {pp.verdict === 'right' && (
+                      <span className="fx-grade fx-right">✓ Called it right{score ? ` · ${score}` : ''}</span>
+                    )}
+                    {pp.verdict === 'wrong' && (
+                      <span className="fx-grade fx-wrong">✗ Called it wrong{score ? ` · ${score}` : ''}</span>
+                    )}
+                    {!pp.verdict && (
+                      <span className="fx-grade fx-pending">· Awaiting result</span>
+                    )}
+                  </div>
                   <span className="fx-cta">View →</span>
                 </div>
               );
