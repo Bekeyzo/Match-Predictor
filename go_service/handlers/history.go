@@ -51,7 +51,7 @@ func GetPredictionHistory(c echo.Context) error {
 	}
 
 	rows, err := db.DB.Query(
-		`SELECT home_team, away_team, prediction, predicted_at FROM predictions
+		`SELECT home_team, away_team, prediction, predicted_at, verdict, result FROM predictions
 		 WHERE league_code = $1 AND match_date = $2
 		 ORDER BY home_team`,
 		league, date,
@@ -66,13 +66,19 @@ func GetPredictionHistory(c echo.Context) error {
 		AwayTeam    string          `json:"away_team"`
 		Prediction  json.RawMessage `json:"prediction"`
 		PredictedAt string          `json:"predicted_at"`
+		Verdict     *string         `json:"verdict"`
+		Result      json.RawMessage `json:"result"`
 	}
 	items := []histItem{}
 	for rows.Next() {
 		var it histItem
 		var raw []byte
-		if rows.Scan(&it.HomeTeam, &it.AwayTeam, &raw, &it.PredictedAt) == nil {
+		var resRaw []byte
+		if rows.Scan(&it.HomeTeam, &it.AwayTeam, &raw, &it.PredictedAt, &it.Verdict, &resRaw) == nil {
 			it.Prediction = json.RawMessage(raw)
+			if resRaw != nil {
+				it.Result = json.RawMessage(resRaw)
+			}
 			items = append(items, it)
 		}
 	}
