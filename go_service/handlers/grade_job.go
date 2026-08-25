@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -87,7 +89,18 @@ func GradeLeague(c echo.Context) error {
 
 	finished, err := fetchFinished(league, apiKey)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "fetch finished failed: " + err.Error()})
+		finished = nil // org failed; try the co.uk fallback below
+	}
+	if len(finished) == 0 {
+		if alt, altErr := fetchFinishedCoUk(league); altErr == nil && len(alt) > 0 {
+			finished = alt
+		}
+	}
+	if len(finished) == 0 {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"league": league, "graded": 0, "right": 0, "wrong": 0,
+			"pending": 0, "note": "no finished results available for this league yet",
+		})
 	}
 
 	rows, err := db.DB.Query(
@@ -153,4 +166,94 @@ func GradeLeague(c echo.Context) error {
 		"league": league, "graded": graded, "right": right, "wrong": wrong,
 		"pending": len(pending) - graded,
 	})
+}
+
+// coUkSeason returns football-data.co.uk's season code, e.g. "2526" for 2025-26.
+// Their season starts in July; before July we're still in the season that began
+// the previous calendar year.
+func coUkSeason(now time.Time) string {
+	y := now.Year() % 100
+	if now.Month() < time.July {
+		// e.g. Feb 2026 -> season 2025-26 -> "2526"
+		return fmt.Sprintf("%02d%02d", y-1, y)
+	}
+	// e.g. Aug 2026 -> season 2026-27 -> "2627"
+	return fmt.Sprintf("%02d%02d", y, y+1)
+}
+
+// fetchFinishedCoUk pulls finished results from football-data.co.uk's per-season
+// results CSV (/mmz4281/<season>/<div>.csv), which carries FTHG/FTAG columns.
+// Used for leagues football-data.org doesn't cover (Greece, Belgium, etc.).
+func fetchFinishedCoUk(leagueCode string) (map[string]finishedMatch, error) {
+	div, ok := footballDataCoUkDiv[leagueCode]
+	if !ok {
+		return nil, fmt.Errorf("no football-data.co.uk div for %s", leagueCode)
+	}
+	url := fmt.Sprintf("https://www.football-data.co.uk/mmz4281/%s/%s.csv", coUkSeason(time.Now()), div)
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; TehutiBot/1.0)")
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("results csv returned %d", resp.StatusCode)
+	}
+
+	out := map[string]finishedMatch{}
+	scanner := bufio.NewScanner(resp.Body)
+	scanner.Buffer(make([]byte, 1024*1024), 1024*1024)
+
+	// find columns by header name (the file has ~130 columns)
+	var idxDate, idxHome, idxAway, idxFTHG, idxFTAG = -1, -1, -1, -1, -1
+	first := true
+	for scanner.Scan() {
+		line := strings.TrimRight(scanner.Text(), "\r")
+		cols := strings.Split(line, ",")
+		if first {
+			first = false
+			for i, name := range cols {
+				switch strings.TrimSpace(name) {
+				case "Date":
+					idxDate = i
+				case "HomeTeam":
+					idxHome = i
+				case "AwayTeam":
+					idxAway = i
+				case "FTHG":
+					idxFTHG = i
+				case "FTAG":
+					idxFTAG = i
+				}
+			}
+			if idxDate < 0 || idxHome < 0 || idxAway < 0 || idxFTHG < 0 || idxFTAG < 0 {
+				return nil, fmt.Errorf("results csv missing expected columns")
+			}
+			continue
+		}
+		if len(cols) <= idxFTAG {
+			continue
+		}
+		hg, err1 := strconv.Atoi(strings.TrimSpace(cols[idxFTHG]))
+		ag, err2 := strconv.Atoi(strings.TrimSpace(cols[idxFTAG]))
+		if err1 != nil || err2 != nil {
+			continue // unplayed game (blank goals)
+		}
+		// Date is dd/mm/yyyy (occasionally dd/mm/yy)
+		dateStr := strings.TrimSpace(cols[idxDate])
+		t, err := time.Parse("02/01/2006", dateStr)
+		if err != nil {
+			if t, err = time.Parse("02/01/06", dateStr); err != nil {
+				continue
+			}
+		}
+		date := t.Format("2006-01-02")
+		home := strings.TrimSpace(cols[idxHome])
+		away := strings.TrimSpace(cols[idxAway])
+		key := date + "|" + normTeam(home) + "|" + normTeam(away)
+		out[key] = finishedMatch{home: home, away: away, homeGoals: hg, awayGoals: ag}
+	}
+	return out, nil
 }
