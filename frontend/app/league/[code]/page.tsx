@@ -224,7 +224,7 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
           {nextDate ? (
             <div className="empty-sub">Next up: <strong>{new Date(nextDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div>
           ) : (
-            <div className="empty-sub">This league may be between matchdays, or its season hasn&rsquo;t started yet. Check back closer to matchday.</div>
+            <div className="empty-sub">This league is between matchdays right now. Fixtures usually appear a few days before the next round — check back closer to the weekend.</div>
           )}
         </div>
       ) : (
