@@ -193,5 +193,29 @@ func nextFixtureDate(leagueCode, apiKey string) string {
 			earliest = d
 		}
 	}
+	if earliest != "" {
+		return earliest
+	}
+
+	// football-data.org had nothing (or doesn't cover this league) — try the
+	// football-data.co.uk weekly file, the same source these leagues' fixtures
+	// come from. Returns "" for leagues not in the file (e.g. GSL, SB).
+	coUk, _, cErr := fetchFootballDataCoUk(leagueCode)
+	if cErr != nil {
+		return ""
+	}
+	today := time.Now().Format("2006-01-02")
+	for _, f := range coUk {
+		if len(f.UtcDate) < 10 {
+			continue
+		}
+		d := f.UtcDate[:10]
+		if d < today {
+			continue // past fixture, skip
+		}
+		if earliest == "" || d < earliest {
+			earliest = d
+		}
+	}
 	return earliest
 }
