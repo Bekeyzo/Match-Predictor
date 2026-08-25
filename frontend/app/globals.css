@@ -619,7 +619,7 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 .md-step-btn { width:34px; height:34px; border-radius:9px; border:1px solid var(--rule); background:var(--card); color:var(--ink-2); cursor:pointer; font-size:13px; transition:border-color .15s, color .15s, opacity .15s; }
 .md-step-btn:hover:not(:disabled) { border-color:var(--purple-lt); color:var(--purple); }
 .md-step-btn:disabled { opacity:.35; cursor:default; }
-.md-step-label { font-size:14px; font-weight:600; color:var(--ink-1); min-width:120px; text-align:center; }
+.md-step-label { font-size:14px; font-weight:600; color:var(--ink); min-width:120px; text-align:center; }
 .fx-called { font-size:13px; color:var(--purple); font-weight:600; margin-left:auto; padding-right:12px; }
 
 /* Tehuti hourglass loading spinner */
@@ -664,7 +664,7 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 .pick-lean .pick-conf { background: rgba(127,119,221,0.22); color: var(--purple-lt, #A79FF0); }
 .pick-close .pick-conf { background: transparent; color: var(--ink-2); border: 1px solid rgba(127,119,221,0.4); }
 .pick-body { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
-.pick-label { font-family: var(--display, sans-serif); font-weight: 800; font-size: 26px; color: var(--ink-1); line-height: 1.1; }
+.pick-label { font-family: var(--display, sans-serif); font-weight: 800; font-size: 26px; color: var(--ink); line-height: 1.1; }
 .pick-pct {
   font-family: var(--mono, monospace); font-weight: 700; font-size: 30px;
   color: var(--purple-lt, #A79FF0); flex-shrink: 0;
@@ -677,7 +677,7 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
   gap: 12px; padding: 56px 24px; color: var(--ink-2, #8b86a8);
 }
 .empty-fixtures svg { color: var(--purple, #7F77DD); opacity: 0.7; }
-.empty-title { font-family: var(--display, sans-serif); font-weight: 700; font-size: 20px; color: var(--ink-1, #F4F2FB); }
+.empty-title { font-family: var(--display, sans-serif); font-weight: 700; font-size: 20px; color: var(--ink); }
 .empty-sub { font-size: 14px; line-height: 1.5; max-width: 340px; }
 
 /* Strong-pick verdict on past-matchday rows */
