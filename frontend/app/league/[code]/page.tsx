@@ -48,13 +48,14 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
   const [loading, setLoading] = useState(true);
   const [pastDates, setPastDates] = useState<string[]>([]);
   const [pastIdx, setPastIdx] = useState(-1); // -1 = live view; 0+ = index into pastDates
+  const [nextDate, setNextDate] = useState('');
   const [pastPreds, setPastPreds] = useState<{ home_team: string; away_team: string; prediction: { predicted_result?: string; home_win_prob_pct?: number; draw_prob_pct?: number; away_win_prob_pct?: number }; verdict?: string | null; result?: { pick?: string; home_goals?: number; away_goals?: number } | null }[]>([]);
   const [pastLoading, setPastLoading] = useState(false);
   const tilt = useTilt();
 
   useEffect(() => {
     getFixtures(code)
-      .then(res => { setFixtures(res.data.fixtures || []); setToday(res.data.date); })
+      .then(res => { setFixtures(res.data.fixtures || []); setToday(res.data.date); setNextDate(res.data.next_fixture_date || ''); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [code]);
@@ -220,7 +221,11 @@ export default function LeaguePage({ params }: { params: Promise<{ code: string 
             <path d="M16 2v4M8 2v4M3 10h18" />
           </svg>
           <div className="empty-title">No fixtures in the next 7 days</div>
-          <div className="empty-sub">This league may be between matchdays, or its season hasn&rsquo;t started yet. Check back closer to matchday.</div>
+          {nextDate ? (
+            <div className="empty-sub">Next up: <strong>{new Date(nextDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div>
+          ) : (
+            <div className="empty-sub">This league may be between matchdays, or its season hasn&rsquo;t started yet. Check back closer to matchday.</div>
+          )}
         </div>
       ) : (
         days.map(day => (

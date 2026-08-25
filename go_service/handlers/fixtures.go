@@ -138,12 +138,60 @@ func GetFixtures(c echo.Context) error {
 		"source":   source,
 	}
 
-	// Only cache a real result — never cache an empty list
 	if len(matches) > 0 {
+		// Real result — cache it for the usual window.
 		if b, err := json.Marshal(payload); err == nil {
 			db.RedisClient.Set(db.Ctx, cacheKey, b, 15*time.Minute)
+		}
+	} else {
+		// Nothing in the next 7 days — try to tell the user the exact next date.
+		if nd := nextFixtureDate(leagueCode, apiKey); nd != "" {
+			payload["next_fixture_date"] = nd
+		}
+		// Cache the empty(+maybe date) result briefly so the extra lookup
+		// doesn't run on every request for a between-matchdays league.
+		if b, err := json.Marshal(payload); err == nil {
+			db.RedisClient.Set(db.Ctx, cacheKey, b, 30*time.Minute)
 		}
 	}
 
 	return c.JSON(http.StatusOK, payload)
+}
+
+// nextFixtureDate returns the date (YYYY-MM-DD) of the earliest upcoming
+// SCHEDULED fixture for a league, looking beyond the 7-day window. Used to
+// tell users exactly when a between-matchdays league next plays. Returns ""
+// if unavailable (e.g. leagues football-data.org doesn't cover).
+func nextFixtureDate(leagueCode, apiKey string) string {
+	url := fmt.Sprintf("https://api.football-data.org/v4/competitions/%s/matches?status=SCHEDULED", leagueCode)
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-Auth-Token", apiKey)
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+	var body struct {
+		Matches []struct {
+			UtcDate string `json:"utcDate"`
+		} `json:"matches"`
+	}
+	if json.NewDecoder(resp.Body).Decode(&body) != nil {
+		return ""
+	}
+	earliest := ""
+	for _, m := range body.Matches {
+		if len(m.UtcDate) < 10 {
+			continue
+		}
+		d := m.UtcDate[:10]
+		if earliest == "" || d < earliest {
+			earliest = d
+		}
+	}
+	return earliest
 }

@@ -94,7 +94,7 @@ export const getLeagues = (): Promise<{ data: League[] }> =>
   API.get('/leagues');
 
 // Fixtures
-export const getFixtures = (leagueCode: string): Promise<{ data: { date: string; league: string; fixtures: Fixture[] } }> =>
+export const getFixtures = (leagueCode: string): Promise<{ data: { date: string; league: string; fixtures: Fixture[]; next_fixture_date?: string } }> =>
   API.get(`/fixtures/${leagueCode}`);
 
 // Predictions
