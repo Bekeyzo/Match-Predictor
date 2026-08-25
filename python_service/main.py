@@ -258,7 +258,7 @@ async def listen_for_retrain():
                         print(f"📨 Retrain message received for {league_code}")
                         # Run in executor so async loop isn't blocked
                         loop = asyncio.get_event_loop()
-                        await loop.run_in_executor(None, load_and_train, league_code)
+                        await loop.run_in_executor(None, load_and_train, league_code, True)
                 except Exception as e:
                     print(f"Error processing retrain message: {e}")
 
