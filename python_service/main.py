@@ -218,7 +218,7 @@ def retrain(req: RetrainRequest, background_tasks: BackgroundTasks):
 
     # Run retraining in the background so the API responds immediately
     # The client doesn't have to wait for training to finish
-    background_tasks.add_task(load_and_train, req.league_code)
+    background_tasks.add_task(load_and_train, req.league_code, True)  # force_retrain=True
 
     return {
         "status": "retraining started",
