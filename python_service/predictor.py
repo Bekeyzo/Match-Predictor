@@ -5,6 +5,7 @@ import unicodedata
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from datetime import datetime
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -225,28 +226,6 @@ def resolve_team(org_name: str, index: dict) -> str:
 # ─────────────────────────────────────────────
 # LEAGUE CONFIGURATION
 # ─────────────────────────────────────────────
-LEAGUE_FILES = {
-    "PL":   ["PL_25:26.csv", "PL_24:25.csv", "PL_23:24.csv", "PL_22:23.csv", "PL_21:22.csv"],
-    "ELC":  ["ELC_25:26.csv", "ELC_24:25.csv", "ELC_23:24.csv", "ELC_22:23.csv", "ELC_21:22.csv"],
-    "PD":   ["PD_25:26.csv", "PD_24:25.csv", "PD_23:24.csv", "PD_22:23.csv", "PD_21:22.csv"],
-    "PD2":  ["PD2_25:26.csv", "PD2_24:25.csv", "PD2_23:24.csv", "PD2_22:23.csv", "PD2_21:22.csv"],
-    "BL1":  ["BL1_25:26.csv", "BL1_24:25.csv", "BL1_23:24.csv", "BL1_22:23.csv", "BL1_21:22.csv"],
-    "BL2":  ["BL2_25:26.csv", "BL2_24:25.csv", "BL2_23:24.csv", "BL2_22:23.csv", "BL2_21:22.csv"],
-    "SA":   ["SA_25:26.csv", "SA_24:25.csv", "SA_23:24.csv", "SA_22:23.csv", "SA_21:22.csv"],
-    "SB":   ["SB_25:26.csv", "SB_24:25.csv", "SB_23:24.csv", "SB_22:23.csv", "SB_21:22.csv"],
-    "FL1":  ["FL1_25:26.csv", "FL1_24:25.csv", "FL1_23:24.csv", "FL1_22:23.csv", "FL1_21:22.csv"],
-    "FL2":  ["FL2_25:26.csv", "FL2_24:25.csv", "FL2_23:24.csv", "FL2_22:23.csv", "FL2_21:22.csv"],
-    "DED":  ["DED_25:26.csv", "DED_24:25.csv", "DED_23:24.csv", "DED_22:23.csv", "DED_21:22.csv"],
-    "DED2": ["DED2_25:26.csv", "DED2_24:25.csv", "DED2_23:24.csv", "DED2_22:23.csv", "DED2_21:22.csv"],
-    "PPL":  ["PPL_25:26.csv", "PPL_24:25.csv", "PPL_23:24.csv", "PPL_22:23.csv", "PPL_21:22.csv"],
-    "PPL2": ["PPL2_25:26.csv", "PPL2_24:25.csv", "PPL2_23:24.csv", "PPL2_22:23.csv", "PPL2_21:22.csv"],
-    "SPL":  ["SPL_25:26.csv", "SPL_24:25.csv", "SPL_23:24.csv", "SPL_22:23.csv", "SPL_21:22.csv"],
-    "SPL2": ["SPL2_25:26.csv", "SPL2_24:25.csv", "SPL2_23:24.csv", "SPL2_22:23.csv", "SPL2_21:22.csv"],
-    "BEL":  ["BEL_25:26.csv", "BEL_24:25.csv", "BEL_23:24.csv", "BEL_22:23.csv", "BEL_21:22.csv"],
-    "BEL2": ["BEL2_25:26.csv", "BEL2_24:25.csv", "BEL2_23:24.csv", "BEL2_22:23.csv", "BEL2_21:22.csv"],
-    "GSL":  ["GSL_25:26.csv", "GSL_24:25.csv", "GSL_23:24.csv", "GSL_22:23.csv", "GSL_21:22.csv"],
-    "GSL2": ["GSL2_25:26.csv", "GSL2_24:25.csv", "GSL2_23:24.csv", "GSL2_22:23.csv", "GSL2_21:22.csv"],
-}
 
 DATA_URLS = {
     "PL":   "https://www.football-data.co.uk/mmz4281/{season}/E0.csv",
@@ -271,7 +250,22 @@ DATA_URLS = {
     "GSL2": "https://www.football-data.co.uk/mmz4281/{season}/G2.csv",
 }
 
-SEASONS = ["2526", "2425", "2324", "2223", "2122"]
+def current_seasons(n=5):
+    """Football-data.co.uk season codes, newest first, e.g. ["2627","2526",...].
+    The season starts in July, so before July we're still in the season that
+    began the previous calendar year. Rolls forward automatically each year."""
+    now = datetime.now()
+    start = now.year if now.month >= 7 else now.year - 1
+    return [f"{(start - i) % 100:02d}{(start - i + 1) % 100:02d}" for i in range(n)]
+
+SEASONS = current_seasons()
+
+# Build the per-league training-file lists from the active seasons, so the
+# download loop (SEASONS) and the load loop (LEAGUE_FILES) can never drift.
+LEAGUE_FILES = {
+    lg: [f"{lg}_{s[:2]}:{s[2:]}.csv" for s in SEASONS]
+    for lg in DATA_URLS
+}
 
 
 # ─────────────────────────────────────────────
