@@ -178,6 +178,7 @@ def resolve_team(org_name: str, index: dict) -> str:
         "le havre ac": "Le Havre",
         "fc metz": "Metz",
         "fc nantes": "Nantes",
+        "es troyes ac": "Troyes",
         # Netherlands (Eredivisie)
         "feyenoord rotterdam": "Feyenoord",
         "az": "AZ Alkmaar",
