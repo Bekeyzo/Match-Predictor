@@ -75,6 +75,8 @@ export interface PredictionResult {
   expected_home_cards: number;
   expected_away_cards: number;
   expected_total_cards: number;
+  insufficient_data?: boolean;
+  reason?: string;
 }
 
 // Auth

@@ -171,6 +171,16 @@ function MatchContent() {
     </div>
   );
 
+  if (p?.insufficient_data) return (
+    <div className="state">
+      <div className="side-title">Not enough data for this fixture</div>
+      <p style={{ maxWidth:420, margin:'12px auto 0', lineHeight:1.5 }}>
+        {p.reason ? p.reason + '. ' : ''}Tehuti only forecasts from real match history — when the data isn't there, we say so rather than guess a number.
+      </p>
+      <a href="/" className="back" style={{ marginTop:18 }}>← Back to leagues</a>
+    </div>
+  );
+
   if (error || !p) return (
     <div className="state">
       {error || 'No prediction available for this fixture.'}<br />

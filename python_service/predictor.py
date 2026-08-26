@@ -539,6 +539,21 @@ def predict_fixture(
     hf = get_recent_features(all_data, home, target_date)
     af = get_recent_features(all_data, away, target_date)
 
+    # FAIL-SAFE: if a resolved team isn't in this league's data at all (a name
+    # that didn't map, or a team with no historical rows), we have nothing to
+    # compute from. Return an honest "insufficient data" flag instead of a fake
+    # 0-0 that looks like a real prediction.
+    known = set(all_data['HomeTeam'].dropna()) | set(all_data['AwayTeam'].dropna())
+    missing = [orig for orig, res in ((home_team, home), (away_team, away)) if res not in known]
+    if missing:
+        return {
+            "insufficient_data": True,
+            "reason": "No historical match data for: " + ", ".join(missing),
+            "fixture": f"{home_team} vs {away_team}",
+            "home_team": home_team,
+            "away_team": away_team,
+        }
+
     feat = [
         hf['gf'], hf['ga'], af['gf'], af['ga'],
         hf['corners_for'], af['corners_for'],
