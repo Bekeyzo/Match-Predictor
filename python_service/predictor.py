@@ -132,10 +132,24 @@ def resolve_team(org_name: str, index: dict) -> str:
         "atletico madrid": "Ath Madrid",
         "atletico de madrid": "Ath Madrid",
         "club atletico de madrid": "Ath Madrid",
+        "club atlético de madrid": "Ath Madrid",
         "fc barcelona": "Barcelona",
-        "rcd espanyol de barcelona": "Espanyol",
-        "rcd espanyol": "Espanyol",
-        "espanyol": "Espanyol",
+        # Espanyol: the CSV spells it "Espanol" (no y) — the old pins pointed at
+        # "Espanyol" which is NOT in the data, so they silently failed.
+        "rcd espanyol de barcelona": "Espanol",
+        "rcd espanyol": "Espanol",
+        "espanyol": "Espanol",
+        # verified org long-name -> CSV short-name pins (checked against PD data)
+        "athletic club": "Ath Bilbao",
+        "ca osasuna": "Osasuna",
+        "levante ud": "Levante",
+        "rc celta de vigo": "Celta",
+        "rayo vallecano de madrid": "Vallecano",
+        "real betis balompié": "Betis",
+        "real betis balompie": "Betis",
+        "real racing club de santander": "Santander",
+        "real sociedad de fútbol": "Sociedad",
+        "real sociedad de futbol": "Sociedad",
         # France (Ligue 1) — official long names -> CSV short names
         "olympique de marseille": "Marseille",
         "paris saint-germain fc": "Paris SG",
