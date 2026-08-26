@@ -128,6 +128,14 @@ def resolve_team(org_name: str, index: dict) -> str:
         # England
         "manchester united fc": "Man United",
         "manchester city fc": "Man City",
+        "brighton & hove albion fc": "Brighton",
+        "coventry city fc": "Coventry",
+        "hull city afc": "Hull",
+        "ipswich town fc": "Ipswich",
+        "leeds united fc": "Leeds",
+        "newcastle united fc": "Newcastle",
+        "nottingham forest fc": "Nott'm Forest",
+        "tottenham hotspur fc": "Tottenham",
         # Spain
         "atletico madrid": "Ath Madrid",
         "atletico de madrid": "Ath Madrid",
