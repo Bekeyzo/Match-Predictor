@@ -14,14 +14,34 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// normTeam lowercases and strips common suffixes so a stored prediction's
-// team name matches football-data.org's finished-match name.
+// teamAliases maps org long names to the football-data.co.uk short names,
+// so the grader can match a stored prediction to its finished result.
+// Duplicates Python resolve_team's pins (python_service/predictor.py) — keep
+// in sync until predictions store the resolved short name. Keys are written
+// post lowercase+suffix-strip. PSG -> paris sg, never paris fc (different club).
+var teamAliases = map[string]string{
+	"olympique de marseille": "marseille",
+	"paris saint-germain": "paris sg",
+	"rc strasbourg alsace": "strasbourg",
+	"stade rennais 1901": "rennes",
+	"sc cambuur-leeuwarden": "cambuur",
+	"feyenoord rotterdam": "feyenoord",
+	"sbv excelsior": "excelsior",
+	"nec": "nijmegen",
+	"sporting clube de braga": "sp braga",
+}
+
+// normTeam lowercases, strips suffixes, then applies the alias map.
 func normTeam(s string) string {
 	s = strings.ToLower(strings.TrimSpace(s))
 	for _, suf := range []string{" fc", " afc", " cf", " sc"} {
 		s = strings.TrimSuffix(s, suf)
 	}
-	return strings.TrimSpace(s)
+	s = strings.TrimSpace(s)
+	if alias, ok := teamAliases[s]; ok {
+		return alias
+	}
+	return s
 }
 
 type finishedMatch struct {
