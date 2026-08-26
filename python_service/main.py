@@ -83,9 +83,10 @@ async def lifespan(app: FastAPI):
     # Start listening to RabbitMQ for retrain requests
     asyncio.create_task(listen_for_retrain())
 
-    # Auto-update scheduler — using a 2-minute interval FOR TESTING.
-    # Switch to cron (day_of_week="mon,thu", hour=8) once confirmed working.
-    scheduler = AsyncIOScheduler()
+    # Auto-update scheduler — retrains all leagues Mon & Thu at 08:00.
+    # Cadence matches when fresh results land (weekend + midweek rounds);
+    # avoids hammering football-data.co.uk, which risks rate-limiting/blocking.
+    scheduler = AsyncIOScheduler(timezone="Africa/Lagos")
     scheduler.add_job(
         retrain_all_leagues,
         trigger="cron",
