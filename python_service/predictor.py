@@ -193,6 +193,10 @@ def resolve_team(org_name: str, index: dict) -> str:
         "fc utrecht": "Utrecht",
         "fc twente": "Twente",
         "go ahead eagles": "Go Ahead Eagles",
+        "ado den haag": "Den Haag",
+        "fc twente '65": "Twente",
+        "telstar 1963": "Telstar",
+        "willem ii tilburg": "Willem II",
         # Portugal (Primeira Liga) — two Sportings, keep distinct
         "sporting clube de portugal": "Sp Lisbon",
         "sporting cp": "Sp Lisbon",
