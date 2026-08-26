@@ -171,6 +171,12 @@ def resolve_team(org_name: str, index: dict) -> str:
         "fc utrecht": "Utrecht",
         "fc twente": "Twente",
         "go ahead eagles": "Go Ahead Eagles",
+        # Portugal (Primeira Liga) — two Sportings, keep distinct
+        "sporting clube de portugal": "Sp Lisbon",
+        "sporting cp": "Sp Lisbon",
+        "sporting lisbon": "Sp Lisbon",
+        "sporting clube de braga": "Sp Braga",
+        "sc braga": "Sp Braga",
         # Germany (Bundesliga) — official long names -> CSV short names
         "fc bayern munchen": "Bayern Munich",
         "fc bayern münchen": "Bayern Munich",
