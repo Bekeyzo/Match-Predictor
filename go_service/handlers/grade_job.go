@@ -99,6 +99,28 @@ func fetchFinished(leagueCode, apiKey string) (map[string]finishedMatch, error) 
 	return out, nil
 }
 
+// lookupWithinADay finds a finished result for the given home|away pair on the
+// stored date, or +/- 1 day. Home/away must match EXACTLY (same orientation) —
+// only the date flexes. This absorbs UTC-vs-local kickoff rollover (e.g. a late
+// game football-data.org dates 08-22 that co.uk records as 08-21) WITHOUT ever
+// matching a reversed fixture or a different game. Off by >1 day, or home/away
+// swapped, stays unmatched (pending) — we never guess a verdict.
+func lookupWithinADay(finished map[string]finishedMatch, dateStr, home, away string) (finishedMatch, bool) {
+	base, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		// fall back to exact-key lookup if the date can't be parsed
+		fm, ok := finished[dateStr+"|"+home+"|"+away]
+		return fm, ok
+	}
+	for _, delta := range []int{0, -1, 1} {
+		d := base.AddDate(0, 0, delta).Format("2006-01-02")
+		if fm, ok := finished[d+"|"+home+"|"+away]; ok {
+			return fm, true
+		}
+	}
+	return finishedMatch{}, false
+}
+
 // GradeLeague grades all ungraded past predictions for a league.
 func GradeLeague(c echo.Context) error {
 	league := c.QueryParam("league")
@@ -156,8 +178,7 @@ func GradeLeague(c echo.Context) error {
 
 	graded, right, wrong := 0, 0, 0
 	for _, p := range pending {
-		key := p.date + "|" + normTeam(p.home) + "|" + normTeam(p.away)
-		fm, ok := finished[key]
+		fm, ok := lookupWithinADay(finished, p.date, normTeam(p.home), normTeam(p.away))
 		if !ok {
 			continue // no finished result yet (or name/date mismatch) — leave pending
 		}
