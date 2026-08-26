@@ -199,6 +199,15 @@ def resolve_team(org_name: str, index: dict) -> str:
         "sporting lisbon": "Sp Lisbon",
         "sporting clube de braga": "Sp Braga",
         "sc braga": "Sp Braga",
+        # Italy (Serie A) — long -> CSV short; Inter is "Inter" NOT "Milan" (derby trap)
+        "acf fiorentina": "Fiorentina",
+        "atalanta bc": "Atalanta",
+        "bologna fc 1909": "Bologna",
+        "como 1907": "Como",
+        "fc internazionale milano": "Inter",
+        "genoa cfc": "Genoa",
+        "parma calcio 1913": "Parma",
+        "ssc napoli": "Napoli",
         # Germany (Bundesliga) — official long names -> CSV short names
         "fc bayern munchen": "Bayern Munich",
         "fc bayern münchen": "Bayern Munich",
