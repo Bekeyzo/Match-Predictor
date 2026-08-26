@@ -264,6 +264,10 @@ def resolve_team(org_name: str, index: dict) -> str:
         "hertha bsc": "Hertha",
         "sv darmstadt 98": "Darmstadt",
         # Championship (England) — long -> CSV short
+        "bolton wanderers fc": "Bolton",
+        "lincoln city fc": "Lincoln",
+        "west ham united fc": "West Ham",
+        "wolverhampton wanderers fc": "Wolves",
         "charlton athletic fc": "Charlton",
         "derby county fc": "Derby",
         "cardiff city fc": "Cardiff",
