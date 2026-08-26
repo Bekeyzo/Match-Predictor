@@ -199,6 +199,16 @@ def resolve_team(org_name: str, index: dict) -> str:
         "sporting lisbon": "Sp Lisbon",
         "sporting clube de braga": "Sp Braga",
         "sc braga": "Sp Braga",
+        # verified org long-name -> CSV short-name pins (checked against PPL data)
+        "académico de viseu fc": "Academico Viseu",
+        "academico de viseu fc": "Academico Viseu",
+        "cf estrela da amadora": "Estrela",
+        "cs marítimo": "Maritimo",
+        "cs maritimo": "Maritimo",
+        "gd estoril praia": "Estoril",
+        "sport lisboa e benfica": "Benfica",
+        "vitória sc": "Guimaraes",
+        "vitoria sc": "Guimaraes",
         # Italy (Serie A) — long -> CSV short; Inter is "Inter" NOT "Milan" (derby trap)
         "acf fiorentina": "Fiorentina",
         "atalanta bc": "Atalanta",
