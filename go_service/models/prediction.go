@@ -30,4 +30,6 @@ type PredictionResult struct {
 	ExpectedHomeCards      float64 `json:"expected_home_cards"`
 	ExpectedAwayCards      float64 `json:"expected_away_cards"`
 	ExpectedTotalCards     float64 `json:"expected_total_cards"`
+	InsufficientData       *bool   `json:"insufficient_data,omitempty"`
+	Reason                 *string `json:"reason,omitempty"`
 }
