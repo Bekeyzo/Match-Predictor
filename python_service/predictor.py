@@ -395,6 +395,9 @@ def scoreline_probs(exp_home, exp_away, max_goals=8):
 # FEATURE EXTRACTION
 # ─────────────────────────────────────────────
 def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
+    # Normalize whatever the caller passes (date / datetime / str) to a
+    # Timestamp so the comparison against the datetime64 column always works.
+    date = pd.to_datetime(date)
     recent = all_data[
         ((all_data['HomeTeam'] == team) | (all_data['AwayTeam'] == team)) &
         (all_data['Date'] < date)
