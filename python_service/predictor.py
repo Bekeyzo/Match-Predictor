@@ -408,7 +408,8 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
             'gf': 0.0, 'ga': 0.0,
             'corners_for': 0.0, 'corners_against': 0.0,
             'cards_for': 0.0, 'cards_against': 0.0,
-            'sot_for': 0.0, 'sot_against': 0.0
+            'sot_for': 0.0, 'sot_against': 0.0,
+            'match_count': 0
         }
 
     gf = ga = corners_for = cards_for = sot_for = 0.0
@@ -446,6 +447,7 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
             cb += m.get('HY', 0) + m.get('HR', 0)
             csot += m.get('HST', 0)
 
+    real_count = count  # true number of recent matches, before the floor below
     count = max(count, 1)
     ccount = max(ccount, 1)
 
@@ -457,7 +459,8 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
         'cards_for': cards_for / count,
         'cards_against': cb / ccount,
         'sot_for': sot_for / count,
-        'sot_against': csot / ccount
+        'sot_against': csot / ccount,
+        'match_count': real_count
     }
 
 
@@ -545,6 +548,15 @@ def predict_fixture(
     # 0-0 that looks like a real prediction.
     known = set(all_data['HomeTeam'].dropna()) | set(all_data['AwayTeam'].dropna())
     missing = [orig for orig, res in ((home_team, home), (away_team, away)) if res not in known]
+    # FOSSIL GUARD: a team resolved into the data but with ZERO recent matches
+    # before this date has no form to compute from — the recency window came back
+    # empty (this is exactly what the old date-comparison bug produced, and what
+    # froze fake 0-0 "fossil" predictions into the table). Treat it as no data
+    # rather than emitting a fake scoreline.
+    if not missing:
+        no_form = [orig for orig, feats in ((home_team, hf), (away_team, af)) if feats.get('match_count', 0) == 0]
+        if no_form:
+            missing = no_form
     if missing:
         return {
             "insufficient_data": True,
