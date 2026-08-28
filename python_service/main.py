@@ -14,6 +14,8 @@ from predictor import (
     predict_fixture,
     build_name_index,
     get_h2h_from_data,
+    get_h2h_at_venue,
+    resolve_team,
     save_model,
     load_saved_model,
     LEAGUE_FILES,
@@ -187,7 +189,13 @@ def h2h(req: H2HRequest):
         raise HTTPException(status_code=404, detail=f"No model loaded for league: {req.league_code}")
     _model, _le, all_data, name_index, _stats = model_cache[req.league_code]
     try:
-        return {"meetings": get_h2h_from_data(req.home_team, req.away_team, all_data, name_index)}
+        return {
+            "meetings": get_h2h_from_data(req.home_team, req.away_team, all_data, name_index),
+            "home_venue": get_h2h_at_venue(req.home_team, req.away_team, all_data, name_index),
+            "away_venue": get_h2h_at_venue(req.away_team, req.home_team, all_data, name_index),
+            "home_team": resolve_team(req.home_team, name_index),
+            "away_team": resolve_team(req.away_team, name_index),
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

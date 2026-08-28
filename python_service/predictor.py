@@ -607,6 +607,29 @@ def get_h2h_from_data(home, away, all_data, name_index, limit=5):
         })
     return out
 
+
+def get_h2h_at_venue(home_side, away_side, all_data, name_index, limit=5):
+    """Last `limit` meetings between the two teams played at `home_side`'s
+    ground (home_side home, away_side away). Read-only."""
+    h = resolve_team(home_side, name_index)
+    a = resolve_team(away_side, name_index)
+    d = all_data
+    rows = d[(d['HomeTeam'] == h) & (d['AwayTeam'] == a)].sort_values('Date').tail(limit)
+    out = []
+    for _, r in rows.iterrows():
+        if r['FTR'] == 'D':
+            winner = 'Draw'
+        else:
+            winner = r['HomeTeam'] if r['FTR'] == 'H' else r['AwayTeam']
+        out.append({
+            'date': str(r['Date'])[:10],
+            'home': r['HomeTeam'],
+            'away': r['AwayTeam'],
+            'score': f"{int(r['FTHG'])}-{int(r['FTAG'])}",
+            'winner': winner,
+        })
+    return out
+
 def predict_fixture(
     home_team: str,
     away_team: str,
