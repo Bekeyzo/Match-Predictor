@@ -591,7 +591,7 @@ def get_h2h_from_data(home, away, all_data, name_index, limit=5):
     d = all_data
     mask = (((d['HomeTeam'] == h) & (d['AwayTeam'] == a)) |
             ((d['HomeTeam'] == a) & (d['AwayTeam'] == h)))
-    rows = d[mask].sort_values('Date').tail(limit)
+    rows = d[mask].sort_values('Date').tail(limit).iloc[::-1]
     out = []
     for _, r in rows.iterrows():
         if r['FTR'] == 'D':
@@ -614,7 +614,7 @@ def get_h2h_at_venue(home_side, away_side, all_data, name_index, limit=5):
     h = resolve_team(home_side, name_index)
     a = resolve_team(away_side, name_index)
     d = all_data
-    rows = d[(d['HomeTeam'] == h) & (d['AwayTeam'] == a)].sort_values('Date').tail(limit)
+    rows = d[(d['HomeTeam'] == h) & (d['AwayTeam'] == a)].sort_values('Date').tail(limit).iloc[::-1]
     out = []
     for _, r in rows.iterrows():
         if r['FTR'] == 'D':

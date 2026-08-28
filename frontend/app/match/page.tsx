@@ -347,18 +347,6 @@ function MatchContent() {
               {!h2hLoading && h2h && h2h.length === 0 && (
                 <div className="eyebrow" style={{ textAlign:'center', padding:'12px' }}>No recent meetings on record.</div>
               )}
-              {!h2hLoading && h2h && h2h.map((m, i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 10px', borderRadius:'8px', background: i % 2 === 0 ? 'rgba(124,58,237,0.04)' : 'transparent', fontSize:'13px' }}>
-                  <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
-                  <span style={{ flex:1, textAlign:'right', fontWeight: m.winner === m.home ? 700 : 400 }}>{m.home}</span>
-                  <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--home, #7C3AED)' }}>{m.score}</span>
-                  <span style={{ flex:1, textAlign:'left', fontWeight: m.winner === m.away ? 700 : 400 }}>{m.away}</span>
-                </div>
-              ))}
-              {!h2hLoading && h2h && h2h.length > 0 && (
-                <div className="eyebrow" style={{ textAlign:'center', marginTop:'8px', opacity:0.7 }}>Recent meetings · context only</div>
-              )}
-
               {!h2hLoading && h2h && h2h.length > 0 && (
                 <div style={{ marginTop:'14px', borderTop:'1px solid var(--border, #eee)', paddingTop:'12px' }}>
                   <button onClick={() => setVenOpen(venOpen==='home'?'none':'home')} className="ven-link" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 4px', background:'transparent', border:'none', color:'var(--home, #7C3AED)', fontWeight:600, fontSize:'13px', cursor:'pointer' }}>
@@ -395,6 +383,20 @@ function MatchContent() {
                   )}
                 </div>
               )}
+
+              {!h2hLoading && h2h && h2h.map((m, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 10px', borderRadius:'8px', background: i % 2 === 0 ? 'rgba(124,58,237,0.04)' : 'transparent', fontSize:'13px' }}>
+                  <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
+                  <span style={{ flex:1, textAlign:'right', fontWeight: m.winner === m.home ? 700 : 400 }}>{m.home}</span>
+                  <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--home, #7C3AED)' }}>{m.score}</span>
+                  <span style={{ flex:1, textAlign:'left', fontWeight: m.winner === m.away ? 700 : 400 }}>{m.away}</span>
+                </div>
+              ))}
+              {!h2hLoading && h2h && h2h.length > 0 && (
+                <div className="eyebrow" style={{ textAlign:'center', marginTop:'8px', opacity:0.7 }}>Recent meetings · context only</div>
+              )}
+
+
             </div>
           )}
         </div>
