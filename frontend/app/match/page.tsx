@@ -384,6 +384,9 @@ function MatchContent() {
                 </div>
               )}
 
+              {!h2hLoading && h2h && h2h.length > 0 && (
+                <div className="eyebrow" style={{ marginTop:'14px', marginBottom:'6px', borderTop:'1px solid var(--border, #eee)', paddingTop:'12px', fontWeight:700, opacity:0.8 }}>All meetings</div>
+              )}
               {!h2hLoading && h2h && h2h.map((m, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 10px', borderRadius:'8px', background: i % 2 === 0 ? 'rgba(124,58,237,0.04)' : 'transparent', fontSize:'13px' }}>
                   <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
