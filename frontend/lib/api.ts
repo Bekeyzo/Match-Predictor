@@ -112,6 +112,25 @@ export const getPrediction = (
     match_date: matchDate,
     league_code: leagueCode,
   });
+export interface H2HMeeting {
+  date: string;
+  home: string;
+  away: string;
+  score: string;
+  winner: string;
+}
+
+export const getH2H = (
+  homeTeam: string,
+  awayTeam: string,
+  leagueCode: string
+): Promise<{ data: { meetings: H2HMeeting[] } }> =>
+  API.post('/h2h', {
+    home_team: homeTeam,
+    away_team: awayTeam,
+    league_code: leagueCode,
+  });
+
 export interface FeaturedFixture {
   id: number;
   home_team: string;

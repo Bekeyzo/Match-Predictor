@@ -2,7 +2,7 @@
 import { useEffect, useState, Suspense, useCallback } from 'react';
 import Spinner from '@/components/Spinner';
 import { useSearchParams } from 'next/navigation';
-import { getPrediction, resendVerification, getPredictionHistory, PredictionResult } from '@/lib/api';
+import { getPrediction, resendVerification, getPredictionHistory, getH2H, H2HMeeting, PredictionResult } from '@/lib/api';
 import AuthCard from '@/components/AuthCard';
 
 type WithForm = PredictionResult & { home_form?: string[]; away_form?: string[] };
@@ -48,7 +48,23 @@ function MatchContent() {
   const [error, setError] = useState('');
   const [unverified, setUnverified] = useState(false);
   const [resent, setResent] = useState(false);
+
+  async function toggleH2H() {
+    if (h2hOpen) { setH2hOpen(false); return; }
+    setH2hOpen(true);
+    if (h2h === null && p) {
+      setH2hLoading(true);
+      try {
+        const res = await getH2H(p.home_team, p.away_team, league);
+        setH2h(res.data.meetings || []);
+      } catch { setH2h([]); }
+      setH2hLoading(false);
+    }
+  }
   const [run, setRun] = useState(false);
+  const [h2h, setH2h] = useState<H2HMeeting[] | null>(null);
+  const [h2hOpen, setH2hOpen] = useState(false);
+  const [h2hLoading, setH2hLoading] = useState(false);
 
   useEffect(() => {
     setAuthed(!!localStorage.getItem('token'));
@@ -314,6 +330,29 @@ function MatchContent() {
           <p className="pred-disclaimer">
             AI-generated estimate from past results — a guide, not a guarantee.
           </p>
+
+          <button onClick={toggleH2H} className="h2h-btn" style={{ width:'100%', padding:'12px', marginTop:'8px', borderRadius:'10px', border:'1px solid var(--border, #e5e5e5)', background:'transparent', color:'var(--home, #7C3AED)', fontWeight:700, fontSize:'13px', cursor:'pointer', letterSpacing:'0.5px', textTransform:'uppercase' }}>
+            {h2hOpen ? 'Hide head-to-head' : 'Head-to-head · last 5'}
+          </button>
+          {h2hOpen && (
+            <div style={{ marginTop:'12px' }}>
+              {h2hLoading && <div className="eyebrow" style={{ textAlign:'center', padding:'12px' }}>Loading…</div>}
+              {!h2hLoading && h2h && h2h.length === 0 && (
+                <div className="eyebrow" style={{ textAlign:'center', padding:'12px' }}>No recent meetings on record.</div>
+              )}
+              {!h2hLoading && h2h && h2h.map((m, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 10px', borderRadius:'8px', background: i % 2 === 0 ? 'rgba(124,58,237,0.04)' : 'transparent', fontSize:'13px' }}>
+                  <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
+                  <span style={{ flex:1, textAlign:'right', fontWeight: m.winner === m.home ? 700 : 400 }}>{m.home}</span>
+                  <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--home, #7C3AED)' }}>{m.score}</span>
+                  <span style={{ flex:1, textAlign:'left', fontWeight: m.winner === m.away ? 700 : 400 }}>{m.away}</span>
+                </div>
+              ))}
+              {!h2hLoading && h2h && h2h.length > 0 && (
+                <div className="eyebrow" style={{ textAlign:'center', marginTop:'8px', opacity:0.7 }}>Recent meetings · context only</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
