@@ -13,6 +13,7 @@ from predictor import (
     train_model,
     predict_fixture,
     build_name_index,
+    get_h2h_from_data,
     save_model,
     load_saved_model,
     LEAGUE_FILES,
@@ -123,6 +124,12 @@ class PredictionRequest(BaseModel):
     league_code: str
 
 
+class H2HRequest(BaseModel):
+    home_team: str
+    away_team: str
+    league_code: str
+
+
 class RetrainRequest(BaseModel):
     league_code: str
 
@@ -169,6 +176,18 @@ def predict(req: PredictionRequest):
             name_index=name_index,
         )
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.post("/h2h")
+def h2h(req: H2HRequest):
+    if req.league_code not in model_cache:
+        raise HTTPException(status_code=404, detail=f"No model loaded for league: {req.league_code}")
+    _model, _le, all_data, name_index, _stats = model_cache[req.league_code]
+    try:
+        return {"meetings": get_h2h_from_data(req.home_team, req.away_team, all_data, name_index)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

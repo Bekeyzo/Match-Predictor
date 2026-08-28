@@ -582,6 +582,31 @@ def train_model(all_data: pd.DataFrame):
 # Now takes name_index so it can translate the incoming fixture name
 # to the CSV's spelling before looking up history.
 # ─────────────────────────────────────────────
+
+def get_h2h_from_data(home, away, all_data, name_index, limit=5):
+    """Last `limit` head-to-head meetings between two teams, from already-loaded
+    league data. Both orientations. Read-only. Returns a list of dicts."""
+    h = resolve_team(home, name_index)
+    a = resolve_team(away, name_index)
+    d = all_data
+    mask = (((d['HomeTeam'] == h) & (d['AwayTeam'] == a)) |
+            ((d['HomeTeam'] == a) & (d['AwayTeam'] == h)))
+    rows = d[mask].sort_values('Date').tail(limit)
+    out = []
+    for _, r in rows.iterrows():
+        if r['FTR'] == 'D':
+            winner = 'Draw'
+        else:
+            winner = r['HomeTeam'] if r['FTR'] == 'H' else r['AwayTeam']
+        out.append({
+            'date': str(r['Date'])[:10],
+            'home': r['HomeTeam'],
+            'away': r['AwayTeam'],
+            'score': f"{int(r['FTHG'])}-{int(r['FTAG'])}",
+            'winner': winner,
+        })
+    return out
+
 def predict_fixture(
     home_team: str,
     away_team: str,
