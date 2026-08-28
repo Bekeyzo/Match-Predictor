@@ -124,7 +124,7 @@ export const getH2H = (
   homeTeam: string,
   awayTeam: string,
   leagueCode: string
-): Promise<{ data: { meetings: H2HMeeting[] } }> =>
+): Promise<{ data: { meetings: H2HMeeting[]; home_venue: H2HMeeting[]; away_venue: H2HMeeting[]; home_team: string; away_team: string } }> =>
   API.post('/h2h', {
     home_team: homeTeam,
     away_team: awayTeam,

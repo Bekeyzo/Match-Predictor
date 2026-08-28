@@ -57,6 +57,9 @@ function MatchContent() {
       try {
         const res = await getH2H(p.home_team, p.away_team, league);
         setH2h(res.data.meetings || []);
+        setHomeVenue(res.data.home_venue || []);
+        setAwayVenue(res.data.away_venue || []);
+        setH2hNames({home:res.data.home_team||p.home_team, away:res.data.away_team||p.away_team});
       } catch { setH2h([]); }
       setH2hLoading(false);
     }
@@ -65,6 +68,10 @@ function MatchContent() {
   const [h2h, setH2h] = useState<H2HMeeting[] | null>(null);
   const [h2hOpen, setH2hOpen] = useState(false);
   const [h2hLoading, setH2hLoading] = useState(false);
+  const [homeVenue, setHomeVenue] = useState<H2HMeeting[]>([]);
+  const [awayVenue, setAwayVenue] = useState<H2HMeeting[]>([]);
+  const [h2hNames, setH2hNames] = useState<{home:string;away:string}>({home:'',away:''});
+  const [venOpen, setVenOpen] = useState<'none'|'home'|'away'>('none');
 
   useEffect(() => {
     setAuthed(!!localStorage.getItem('token'));
@@ -350,6 +357,43 @@ function MatchContent() {
               ))}
               {!h2hLoading && h2h && h2h.length > 0 && (
                 <div className="eyebrow" style={{ textAlign:'center', marginTop:'8px', opacity:0.7 }}>Recent meetings · context only</div>
+              )}
+
+              {!h2hLoading && h2h && h2h.length > 0 && (
+                <div style={{ marginTop:'14px', borderTop:'1px solid var(--border, #eee)', paddingTop:'12px' }}>
+                  <button onClick={() => setVenOpen(venOpen==='home'?'none':'home')} className="ven-link" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 4px', background:'transparent', border:'none', color:'var(--home, #7C3AED)', fontWeight:600, fontSize:'13px', cursor:'pointer' }}>
+                    {venOpen==='home' ? '▾ ' : '▸ '}See {h2hNames.home}'s last 5 at home
+                  </button>
+                  {venOpen==='home' && (
+                    <div style={{ margin:'4px 0 10px' }}>
+                      {homeVenue.length === 0 && <div className="eyebrow" style={{ textAlign:'center', padding:'8px' }}>No meetings at this ground on record.</div>}
+                      {homeVenue.map((m, i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 10px', borderRadius:'8px', background: i%2===0?'rgba(124,58,237,0.04)':'transparent', fontSize:'13px' }}>
+                          <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
+                          <span style={{ flex:1, textAlign:'right', fontWeight: m.winner===m.home?700:400 }}>{m.home}</span>
+                          <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--home, #7C3AED)' }}>{m.score}</span>
+                          <span style={{ flex:1, textAlign:'left', fontWeight: m.winner===m.away?700:400 }}>{m.away}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={() => setVenOpen(venOpen==='away'?'none':'away')} className="ven-link" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 4px', background:'transparent', border:'none', color:'var(--home, #7C3AED)', fontWeight:600, fontSize:'13px', cursor:'pointer' }}>
+                    {venOpen==='away' ? '▾ ' : '▸ '}See {h2hNames.away}'s last 5 at home
+                  </button>
+                  {venOpen==='away' && (
+                    <div style={{ margin:'4px 0 6px' }}>
+                      {awayVenue.length === 0 && <div className="eyebrow" style={{ textAlign:'center', padding:'8px' }}>No meetings at this ground on record.</div>}
+                      {awayVenue.map((m, i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 10px', borderRadius:'8px', background: i%2===0?'rgba(124,58,237,0.04)':'transparent', fontSize:'13px' }}>
+                          <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
+                          <span style={{ flex:1, textAlign:'right', fontWeight: m.winner===m.home?700:400 }}>{m.home}</span>
+                          <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--home, #7C3AED)' }}>{m.score}</span>
+                          <span style={{ flex:1, textAlign:'left', fontWeight: m.winner===m.away?700:400 }}>{m.away}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
