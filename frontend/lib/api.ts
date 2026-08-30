@@ -75,12 +75,12 @@ export interface PredictionResult {
   expected_home_cards: number;
   expected_away_cards: number;
   expected_total_cards: number;
-  expected_home_shots: number;
-  expected_away_shots: number;
-  expected_total_shots: number;
-  expected_home_sot: number;
-  expected_away_sot: number;
-  expected_total_sot: number;
+  expected_home_shots?: number;
+  expected_away_shots?: number;
+  expected_total_shots?: number;
+  expected_home_sot?: number;
+  expected_away_sot?: number;
+  expected_total_sot?: number;
   insufficient_data?: boolean;
   reason?: string;
 }
