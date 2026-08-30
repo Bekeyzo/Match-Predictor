@@ -465,10 +465,11 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
             'corners_for': 0.0, 'corners_against': 0.0,
             'cards_for': 0.0, 'cards_against': 0.0,
             'sot_for': 0.0, 'sot_against': 0.0,
+            'shots_for': 0.0, 'shots_against': 0.0,
             'match_count': 0
         }
 
-    gf = ga = corners_for = cards_for = sot_for = 0.0
+    gf = ga = corners_for = cards_for = sot_for = shots_for = 0.0
     count = 0
 
     for _, m in recent.iterrows():
@@ -490,7 +491,10 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
         if 'HST' in m and not pd.isna(m.get('HST')):
             sot_for += m.get('HST', 0) if m['HomeTeam'] == team else m.get('AST', 0)
 
-    ca = cb = csot = 0.0
+        if 'HS' in m and not pd.isna(m.get('HS')):
+            shots_for += m.get('HS', 0) if m['HomeTeam'] == team else m.get('AS', 0)
+
+    ca = cb = csot = cshots = 0.0
     ccount = 0
     for _, m in recent.iterrows():
         ccount += 1
@@ -498,10 +502,12 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
             ca += m.get('AC', 0)
             cb += m.get('AY', 0) + m.get('AR', 0)
             csot += m.get('AST', 0)
+            cshots += m.get('AS', 0)
         else:
             ca += m.get('HC', 0)
             cb += m.get('HY', 0) + m.get('HR', 0)
             csot += m.get('HST', 0)
+            cshots += m.get('HS', 0)
 
     real_count = count  # true number of recent matches, before the floor below
     count = max(count, 1)
@@ -516,6 +522,8 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
         'cards_against': cb / ccount,
         'sot_for': sot_for / count,
         'sot_against': csot / ccount,
+        'shots_for': shots_for / count,
+        'shots_against': cshots / ccount,
         'match_count': real_count
     }
 
@@ -714,4 +722,10 @@ def predict_fixture(
         "expected_home_cards": round(hf['cards_for'], 2),
         "expected_away_cards": round(af['cards_for'], 2),
         "expected_total_cards": round(hf['cards_for'] + af['cards_for'], 2),
+        "expected_home_shots": round(hf['shots_for'], 2),
+        "expected_away_shots": round(af['shots_for'], 2),
+        "expected_total_shots": round(hf['shots_for'] + af['shots_for'], 2),
+        "expected_home_sot": round(hf['sot_for'], 2),
+        "expected_away_sot": round(af['sot_for'], 2),
+        "expected_total_sot": round(hf['sot_for'] + af['sot_for'], 2),
     }
