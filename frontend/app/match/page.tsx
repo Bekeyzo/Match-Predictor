@@ -307,6 +307,14 @@ function MatchContent() {
                 <td>{p.expected_home_cards.toFixed(1)}</td>
                 <td>{p.expected_away_cards.toFixed(1)}</td>
                 <td>{p.expected_total_cards.toFixed(1)}</td></tr>
+              <tr><td>Shots</td>
+                <td>{p.expected_home_shots.toFixed(1)}</td>
+                <td>{p.expected_away_shots.toFixed(1)}</td>
+                <td>{p.expected_total_shots.toFixed(1)}</td></tr>
+              <tr><td>On Target</td>
+                <td>{p.expected_home_sot.toFixed(1)}</td>
+                <td>{p.expected_away_sot.toFixed(1)}</td>
+                <td>{p.expected_total_sot.toFixed(1)}</td></tr>
             </tbody>
           </table>
 
