@@ -66,6 +66,34 @@ def retrain_all_leagues():
         load_and_train(league_code, force_retrain=True)
     print("✅ Scheduled retrain complete")
 
+
+def grade_all_leagues():
+    """Grade every league's finished-but-ungraded predictions. Runs daily so a
+    match played yesterday shows its result the next morning. Calls the public
+    /grade endpoint (same path proven to work manually)."""
+    import requests as _rq
+    API = "https://api.tehuti.net"
+    print("🏁 Scheduled grading starting for all leagues...")
+    try:
+        r = _rq.post(f"{API}/login",
+                     json={"email": "gfx2@example.com", "password": "testpass99"},
+                     timeout=30)
+        token = r.json().get("token")
+        if not token:
+            print("⚠️  Grading skipped — could not log in")
+            return
+    except Exception as e:
+        print(f"⚠️  Grading login failed: {e}")
+        return
+    headers = {"Authorization": f"Bearer {token}"}
+    for lg in LEAGUE_FILES.keys():
+        try:
+            g = _rq.post(f"{API}/grade?league={lg}", headers=headers, timeout=60)
+            print(f"   {lg}: {g.text.strip()}")
+        except Exception as e:
+            print(f"   {lg}: grade failed ({e})")
+    print("✅ Scheduled grading complete")
+
 # ─────────────────────────────────────────────
 # STARTUP AND SHUTDOWN
 # FastAPI lifespan runs code when the server starts and stops
@@ -97,8 +125,14 @@ async def lifespan(app: FastAPI):
         hour=8,
         minute=0,
     )
+    scheduler.add_job(
+        grade_all_leagues,
+        trigger="cron",
+        hour=6,
+        minute=0,
+    )
     scheduler.start()
-    print("📅 Auto-update scheduler started (Mon & Thu 08:00)")
+    print("📅 Auto-update scheduler started (retrain Mon & Thu 08:00, grading daily 06:00)")
     
     print("✅ ML service ready")
     yield
