@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { Archivo, Bricolage_Grotesque, JetBrains_Mono } from 'next/font/google';
+import { Archivo, JetBrains_Mono } from 'next/font/google';
 import ThemeToggle from '@/components/ThemeToggle';
 import NavAuth from '@/components/NavAuth';
 import './globals.css';
-import '../styles/tehuti-c.css';
 
 const display = Archivo({
   subsets: ['latin'], variable: '--font-display',
@@ -11,9 +10,6 @@ const display = Archivo({
 });
 const mono = JetBrains_Mono({
   subsets: ['latin'], variable: '--font-mono', weight: ['400','500','700'],
-});
-const bricolage = Bricolage_Grotesque({
-  subsets: ['latin'], variable: '--font-bricolage', weight: ['600','800'],
 });
 
 export const metadata: Metadata = {
@@ -34,7 +30,7 @@ const noFlash = `
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${display.variable} ${mono.variable} ${bricolage.variable}`}>
+      <body className={`${display.variable} ${mono.variable}`}>
         <script dangerouslySetInnerHTML={{ __html: noFlash }} />
 
         <nav className="nav">

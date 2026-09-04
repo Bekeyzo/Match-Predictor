@@ -1,168 +1,238 @@
-// Homepage in Direction C. Server component: only the animated pieces are
-// client islands, so almost no JS ships above the fold.
-// The <header> is the shape the direction expects. Either restyle NavAuth
-// with the .tc-nav classes, or drop <NavAuth /> where the button sits.
+'use client';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { getLeagues, getFeatured, League, FeaturedFixture } from '@/lib/api';
+import AuthModal from '@/components/AuthModal';
+import AccuracyCard from '@/components/AccuracyCard';
 
-import Link from "next/link";
-import { CountUp } from "../components/CountUp";
-import { LeagueRecord } from "../components/LeagueRecord";
-import { Reveal } from "../components/Reveal";
-import { ScoreBoard } from "../components/ScoreBoard";
-import { ACCURACY, BOARD, MARKETS, METHOD, RECORD } from "../lib/home-data";
+const META: Record<string, { country: string; flag: string; tier: number }> = {
+  PL:{country:'England',flag:'gb-eng',tier:1}, ELC:{country:'England',flag:'gb-eng',tier:2},
+  PD:{country:'Spain',flag:'es',tier:1}, PD2:{country:'Spain',flag:'es',tier:2},
+  BL1:{country:'Germany',flag:'de',tier:1}, BL2:{country:'Germany',flag:'de',tier:2},
+  SA:{country:'Italy',flag:'it',tier:1}, SB:{country:'Italy',flag:'it',tier:2},
+  FL1:{country:'France',flag:'fr',tier:1}, FL2:{country:'France',flag:'fr',tier:2},
+  DED:{country:'Netherlands',flag:'nl',tier:1}, PPL:{country:'Portugal',flag:'pt',tier:1},
+  BEL:{country:'Belgium',flag:'be',tier:1}, GSL:{country:'Greece',flag:'gr',tier:1},
+};
+const ORDER = ['England','Spain','Germany','Italy','France','Netherlands','Portugal','Belgium','Greece'];
 
-export default function HomePage() {
+function useCountUp(target: number, run: boolean, ms = 900) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (!run) return;
+    let raf = 0; const t0 = performance.now();
+    const step = (t: number) => {
+      const p = Math.min((t - t0) / ms, 1);
+      setV(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, run, ms]);
+  return v;
+}
+
+function useTilt() {
+  return useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    el.style.setProperty('--ry', `${(x - 0.5) * 7}deg`);
+    el.style.setProperty('--rx', `${(0.5 - y) * 7}deg`);
+    el.style.setProperty('--mx', `${x * 100}%`);
+    el.style.setProperty('--my', `${y * 100}%`);
+  }, []);
+}
+const resetTilt = (e: React.MouseEvent<HTMLDivElement>) => {
+  e.currentTarget.style.setProperty('--rx', '0deg');
+  e.currentTarget.style.setProperty('--ry', '0deg');
+};
+
+function Headline({ text }: { text: string }) {
   return (
-    <div className="tc-page">
-      <div>
-        <section style={{ padding: "clamp(2.5rem,5.5vw,4.5rem) 0 clamp(2.5rem,5vw,4rem)" }}>
-          <div className="tc-wrap tc-hero-grid">
-            <div>
-              <h1 className="tc-h1">
-                We keep score<br />on <span style={{ color: "var(--accent)" }}>ourselves</span>.
-              </h1>
-              <p className="tc-lede" style={{ marginTop: "1.4rem", maxWidth: "36ch" }}>
-                A football model that predicts fourteen leagues, then publishes
-                every call it got wrong next to every call it got right.
-              </p>
-              <div style={{ marginTop: "2rem", display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
-                <Link className="tc-btn tc-btn--solid tc-btn--lg" href="/leagues">Open the model</Link>
-                <Link className="tc-btn tc-btn--line tc-btn--lg" href="#record">See the record</Link>
-              </div>
-            </div>
-
-            <ScoreBoard
-              rows={BOARD}
-              totalRight={45}
-              totalWrong={23}
-              footnote="Six of the eleven leagues in the round. Each mark is one fixture where the model's strongest call was checked against the final score."
-            />
-          </div>
-        </section>
-
-        <section style={{ background: "var(--paper-2)", borderBlock: "2px solid var(--ink)" }}>
-          <div className="tc-wrap tc-sec tc-acc-grid">
-            <div className="tc-figure">
-              <CountUp to={ACCURACY.overallPct} className="tc-figure__n" />
-              <span className="tc-figure__u">%</span>
-            </div>
-            <div>
-              <h2 className="tc-h3" style={{ maxWidth: "20ch" }}>
-                Correct result, on matches it had never seen
-              </h2>
-              <p style={{ marginTop: ".8rem", color: "var(--ink-2)", maxWidth: "46ch" }}>
-                Measured across {ACCURACY.matchesTested.toLocaleString("en-GB")} held-out
-                fixtures. Picking the home side every single time gets you {ACCURACY.baselinePct} percent,
-                so the honest claim is a few points of edge, not a crystal ball.
-              </p>
-              <div className="tc-compare" style={{ marginTop: "1.5rem" }}>
-                <div>
-                  <span className="tc-compare__v">{ACCURACY.baselinePct}%</span>
-                  <span className="tc-compare__k">Always pick home</span>
-                </div>
-                <div className="is-up">
-                  <span className="tc-compare__v">{ACCURACY.overallPct}%</span>
-                  <span className="tc-compare__k">Tehuti</span>
-                </div>
-                <div className="is-up">
-                  <span className="tc-compare__v">+{ACCURACY.edgePts}</span>
-                  <span className="tc-compare__k">Points of edge</span>
-                </div>
-                <div>
-                  <span className="tc-compare__v">{ACCURACY.professionalRange}</span>
-                  <span className="tc-compare__k">Professional range</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="tc-sec" id="record">
-          <div className="tc-wrap">
-            <Reveal as="h2"><span className="tc-h2">Every league reports its own week, good or bad</span></Reveal>
-            <Reveal>
-              <p className="tc-lede" style={{ marginTop: ".9rem", marginBottom: "2.5rem" }}>
-                Green is a call that landed. Red is one that did not. The second tiers
-                are the worst of them, and they are printed at the same size as the
-                Premier League.
-              </p>
-            </Reveal>
-
-            <LeagueRecord
-              rows={RECORD}
-              summary="Sixty eight graded calls in the round. Nothing was dropped from the tally for looking bad, and the weakest leagues stayed in."
-            />
-          </div>
-        </section>
-
-        <section className="tc-sec" id="markets" style={{ paddingTop: 0 }}>
-          <div className="tc-wrap">
-            <Reveal as="h2"><span className="tc-h2">Six questions per fixture</span></Reveal>
-            <Reveal>
-              <p className="tc-lede" style={{ marginTop: ".9rem", marginBottom: "2.25rem" }}>
-                The match page answers all of them, then endorses whichever is
-                strongest. Often that is a goals line rather than the winner.
-              </p>
-            </Reveal>
-            <div className="tc-rail">
-              {MARKETS.map((m) => (
-                <div className="tc-rail__card" key={m.name}>
-                  <span className="tc-rail__q">{m.kind}</span>
-                  <h3 className="tc-h3" style={{ fontSize: "var(--tc1)" }}>{m.name}</h3>
-                  <p>{m.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="tc-sec" id="method" style={{ paddingTop: 0 }}>
-          <div className="tc-wrap">
-            <Reveal as="h2"><span className="tc-h2">Train, freeze, grade</span></Reveal>
-            <Reveal>
-              <p className="tc-lede" style={{ marginTop: ".9rem", marginBottom: "2.5rem" }}>
-                The freeze is the part that makes the record mean anything. A
-                prediction that can be edited after kickoff is not a prediction.
-              </p>
-            </Reveal>
-            <div className="tc-method">
-              {METHOD.map((m) => (
-                <div className="tc-method__col" key={m.step}>
-                  <h3 className="tc-h3">{m.step}</h3>
-                  <div className="tc-method__when">{m.when}</div>
-                  <p>{m.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="tc-panel" style={{ padding: "clamp(3.5rem,7vw,5.5rem) 0" }}>
-          <div className="tc-wrap tc-close-grid">
-            <div>
-              <h2 className="tc-h1" style={{ maxWidth: "14ch" }}>This week is already on the board.</h2>
-              <Link className="tc-btn tc-btn--onpanel tc-btn--lg" href="/leagues" style={{ marginTop: "2rem" }}>
-                Open the model
-              </Link>
-            </div>
-            <p style={{ color: "var(--panel-2)", fontSize: "var(--tc-1)", borderLeft: "2px solid var(--accent)", paddingLeft: "1rem", maxWidth: "36ch" }}>
-              Tehuti publishes model output for analysis and study. It is not betting
-              advice, and it sells no tips.
-            </p>
-          </div>
-        </section>
-      </div>
-
-    </div>
+    <>
+      {text.split(' ').map((w, i) => (
+        <span key={i} className="word" style={{ animationDelay: `${i * 70}ms` }}>
+          {w}&nbsp;
+        </span>
+      ))}
+    </>
   );
 }
 
-/** The reading eye, drawn rather than loaded, so it inherits the theme. */
-function TehutiMark() {
+export default function HomePage() {
+  const router = useRouter();
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [featured, setFeatured] = useState<FeaturedFixture[]>([]);
+  const [loading, setLoading] = useState(true);
+  const tilt = useTilt();
+  const [gateOpen, setGateOpen] = useState(false);
+  const [pending, setPending] = useState<FeaturedFixture | null>(null);
+
+  useEffect(() => {
+    getLeagues().then(r => setLeagues(r.data)).catch(console.error).finally(() => setLoading(false));
+    getFeatured().then(r => setFeatured(r.data.fixtures || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('seen'); }),
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    return () => io.disconnect();
+  });
+
+  const nLeagues  = useCountUp(leagues.length, !loading);
+  const nSeasons  = useCountUp(5, !loading, 700);
+  const nFeatured = useCountUp(featured.length, featured.length > 0, 700);
+
+  const go = (f: FeaturedFixture) => {
+    const q = new URLSearchParams({
+      home: f.home_team, away: f.away_team,
+      date: f.utc_date.split('T')[0], league: f.league,
+    });
+    router.push(`/match?${q}`);
+  };
+
+  const openMatch = (f: FeaturedFixture) => {
+    if (localStorage.getItem('token')) { go(f); return; }
+    setPending(f);
+    setGateOpen(true);
+  };
+
+  const when = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' }) + ' · ' +
+           d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', timeZone:'Africa/Lagos' });
+  };
+
+  const grouped = leagues.reduce((acc, l) => {
+    const c = META[l.code]?.country ?? 'Other'; (acc[c] ||= []).push(l); return acc;
+  }, {} as Record<string, League[]>);
+  const countries = ORDER.filter(c => grouped[c]);
+
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" stroke="var(--accent)" strokeWidth="2" />
-      <path d="M4 13.2c2.6 2.6 5.3 3.9 8 3.9s5.4-1.3 8-3.9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M8 12.4c1.5-3.4 3-5.1 4.6-5.1 1.5 0 2.6 1.1 3.4 3.2" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
-    </svg>
+    <div>
+      <div className="aurora">
+        <div className="aurora-blob aurora-1" />
+        <div className="aurora-blob aurora-2" />
+        <div className="aurora-blob aurora-3" />
+      </div>
+
+      <div className="home-grid">
+        <div>
+          <p className="eyebrow">Model-led predictions</p>
+          <h1 className="display" style={{ fontSize:46, margin:'12px 0 4px' }}>
+            <Headline text="Pick your league." /><br />
+            <Headline text="See who&rsquo;s favoured." />
+          </h1>
+
+          <div className="stats">
+            <div><div className="stat-n">{nLeagues}</div><div className="stat-l">Competitions</div></div>
+            <div><div className="stat-n">{nSeasons}</div><div className="stat-l">Seasons of data</div></div>
+            <div><div className="stat-n">{nFeatured}</div><div className="stat-l">Featured now</div></div>
+          </div>
+
+          {loading ? (
+            <>
+              <div className="section-head"><span className="group-name">Loading</span></div>
+              <div className="tiles">
+                {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skel skel-tile" />)}
+              </div>
+            </>
+          ) : (
+            <>
+              {featured.length > 0 && (
+                <div className="reveal">
+                  <div className="section-head"><span className="group-name">Featured</span></div>
+                  <div className="feat-rail">
+                    {featured.map(f => (
+                      <div key={f.id} className="feat-card tilt"
+                           onMouseMove={tilt} onMouseLeave={resetTilt}
+                           onClick={() => openMatch(f)}>
+                        <span className="tilt-sheen" />
+                        <div className="feat-league">
+                          <span className={`fi fi-${META[f.league]?.flag ?? 'xx'}`} />
+                          {f.league_name}
+                        </div>
+                        <div className="feat-team">{f.home_team}</div>
+                        <div className="feat-vs">vs</div>
+                        <div className="feat-team">{f.away_team}</div>
+                        <div className="feat-when">{when(f.utc_date)}</div>
+                        <div className="feat-cta">Predict →</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {countries.map(country => (
+                <section key={country} className="reveal">
+                  <div className="section-head"><span className="group-name">{country}</span></div>
+                  <div className="tiles">
+                    {grouped[country]
+                      .sort((a,b)=>(META[a.code]?.tier??9)-(META[b.code]?.tier??9))
+                      .map(l => {
+                        const m = META[l.code];
+                        return (
+                          <div key={l.code} className="flag-tile tilt"
+                               onMouseMove={tilt} onMouseLeave={resetTilt}
+                               onClick={() => router.push(`/league/${l.code}`)}>
+                            <span className="tilt-sheen" />
+                            <div className="flag-crest">
+                              <span className={`fi fi-${m?.flag ?? 'xx'}`} />
+                            </div>
+                            <div className="flag-body">
+                              <div className="flag-name">
+                                {l.name}
+                                {m?.tier === 2 && <span className="flag-tier">2nd</span>}
+                              </div>
+                              <div className="flag-sub">{m?.country}</div>
+                            </div>
+                            <span className="flag-go">→</span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </section>
+              ))}
+            </>
+          )}
+        </div>
+
+        <aside className="side">
+          <AccuracyCard />
+
+          <div className="side-card">
+            <div className="side-title">How it works</div>
+            <ol className="steps">
+              <li><span className="step-n">1</span> Pick a league</li>
+              <li><span className="step-n">2</span> Choose a fixture</li>
+              <li><span className="step-n">3</span> Read the model&rsquo;s call</li>
+            </ol>
+          </div>
+
+          <div className="side-card disclaimer">
+            <div className="side-title">Heads up</div>
+            <p className="side-note">
+              These predictions come from an AI model trained on past results. They
+              estimate what is <em>likely</em> — they are not a guarantee of the actual
+              outcome. Football is unpredictable, which is rather the point of it.
+            </p>
+            <p className="side-note" style={{ marginBottom: 0 }}>
+              Treat them as a guide, never as a certainty.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <AuthModal
+        open={gateOpen}
+        onClose={() => setGateOpen(false)}
+        onSignedIn={() => { if (pending) go(pending); }}
+      />
+    </div>
   );
 }
