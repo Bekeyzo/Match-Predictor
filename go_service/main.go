@@ -101,6 +101,7 @@ func main() {
 	// Protected
 	e.POST("/predict", middleware.AuthMiddleware(handlers.GetPrediction))
 	e.POST("/h2h", middleware.AuthMiddleware(handlers.GetH2H))
+	e.GET("/analysis/:league", middleware.AuthMiddleware(handlers.GetAnalysis))
 	e.GET("/me", middleware.AuthMiddleware(handlers.GetMe))
 	e.PUT("/me/name", middleware.AuthMiddleware(handlers.UpdateName))
 	e.POST("/retrain/:league", middleware.AuthMiddleware(handlers.TriggerRetrain))
