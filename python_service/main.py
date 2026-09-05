@@ -239,6 +239,40 @@ def h2h(req: H2HRequest):
 # Called manually or triggered by RabbitMQ after a matchday ends
 # Downloads fresh data and retrains the model for a specific league
 # ─────────────────────────────────────────────
+@app.get("/analysis/{league_code}")
+def analysis(league_code: str):
+    """Current-season per-team shots / SoT / corners per game. Read-only."""
+    if league_code not in model_cache:
+        raise HTTPException(status_code=404, detail=f"No model for: {league_code}")
+    import pandas as pd
+    _m, _le, all_data, _idx, _st = model_cache[league_code]
+    d = all_data.copy()
+    d['Date'] = pd.to_datetime(d['Date'])
+    dates = d['Date'].sort_values().drop_duplicates().reset_index(drop=True)
+    gaps = dates.diff()
+    bi = gaps[gaps > pd.Timedelta(days=45)].index
+    season_start = dates[bi[-1]] if len(bi) else dates.min()
+    cur = d[d['Date'] >= season_start]
+    teams = set(cur['HomeTeam'].dropna()) | set(cur['AwayTeam'].dropna())
+    out = []
+    for t in teams:
+        tm = cur[(cur['HomeTeam'] == t) | (cur['AwayTeam'] == t)]
+        n = len(tm)
+        if n == 0:
+            continue
+        shots = sot = corners = 0.0
+        for _, r in tm.iterrows():
+            home = r['HomeTeam'] == t
+            shots += (r['HS'] if home else r['AS']) if not pd.isna(r.get('HS')) else 0
+            sot += (r['HST'] if home else r['AST']) if not pd.isna(r.get('HST')) else 0
+            corners += (r['HC'] if home else r['AC']) if not pd.isna(r.get('HC')) else 0
+        out.append({"team": t, "games": n,
+                    "shots_pg": round(shots / n, 1),
+                    "sot_pg": round(sot / n, 1),
+                    "corners_pg": round(corners / n, 1)})
+    return {"league": league_code, "season_start": str(season_start.date()), "teams": out}
+
+
 @app.get("/accuracy")
 def accuracy():
     """How often the model was right on matches it never trained on."""
