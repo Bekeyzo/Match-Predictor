@@ -350,6 +350,9 @@ function MatchContent() {
             AI-generated estimate from past results — a guide, not a guarantee.
           </p>
 
+          <a href={`/analysis/${league}`} className="h2h-btn" style={{ display:'block', textAlign:'center', width:'100%', padding:'12px', marginTop:'8px', borderRadius:'10px', border:'1px solid var(--border, #e5e5e5)', background:'transparent', color:'var(--home, #7C3AED)', fontWeight:700, fontSize:'13px', textDecoration:'none', letterSpacing:'0.5px', textTransform:'uppercase' }}>
+            More analysis →
+          </a>
           <button onClick={toggleH2H} className="h2h-btn" style={{ width:'100%', padding:'12px', marginTop:'8px', borderRadius:'10px', border:'1px solid var(--border, #e5e5e5)', background:'transparent', color:'var(--home, #7C3AED)', fontWeight:700, fontSize:'13px', cursor:'pointer', letterSpacing:'0.5px', textTransform:'uppercase' }}>
             {h2hOpen ? 'Hide head-to-head' : 'Head-to-head · last 5'}
           </button>

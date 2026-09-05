@@ -137,6 +137,19 @@ export const getH2H = (
     league_code: leagueCode,
   });
 
+export interface TeamStat {
+  team: string;
+  games: number;
+  shots_pg: number;
+  sot_pg: number;
+  corners_pg: number;
+}
+
+export const getAnalysis = (
+  leagueCode: string
+): Promise<{ data: { league: string; season_start: string; teams: TeamStat[] } }> =>
+  API.get(`/analysis/${leagueCode}`);
+
 export interface FeaturedFixture {
   id: number;
   home_team: string;
