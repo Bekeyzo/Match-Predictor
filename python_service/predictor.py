@@ -466,10 +466,11 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
             'cards_for': 0.0, 'cards_against': 0.0,
             'sot_for': 0.0, 'sot_against': 0.0,
             'shots_for': 0.0, 'shots_against': 0.0,
+            'fouls_for': 0.0, 'fouls_against': 0.0,
             'match_count': 0
         }
 
-    gf = ga = corners_for = cards_for = sot_for = shots_for = 0.0
+    gf = ga = corners_for = cards_for = sot_for = shots_for = fouls_for = 0.0
     count = 0
 
     for _, m in recent.iterrows():
@@ -494,7 +495,10 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
         if 'HS' in m and not pd.isna(m.get('HS')):
             shots_for += m.get('HS', 0) if m['HomeTeam'] == team else m.get('AS', 0)
 
-    ca = cb = csot = cshots = 0.0
+        if 'HF' in m and not pd.isna(m.get('HF')):
+            fouls_for += m.get('HF', 0) if m['HomeTeam'] == team else m.get('AF', 0)
+
+    ca = cb = csot = cshots = cfouls = 0.0
     ccount = 0
     for _, m in recent.iterrows():
         ccount += 1
@@ -503,11 +507,13 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
             cb += m.get('AY', 0) + m.get('AR', 0)
             csot += m.get('AST', 0)
             cshots += m.get('AS', 0)
+            cfouls += m.get('AF', 0)
         else:
             ca += m.get('HC', 0)
             cb += m.get('HY', 0) + m.get('HR', 0)
             csot += m.get('HST', 0)
             cshots += m.get('HS', 0)
+            cfouls += m.get('HF', 0)
 
     real_count = count  # true number of recent matches, before the floor below
     count = max(count, 1)
@@ -524,6 +530,8 @@ def get_recent_features(all_data: pd.DataFrame, team: str, date, n: int = 5):
         'sot_against': csot / ccount,
         'shots_for': shots_for / count,
         'shots_against': cshots / ccount,
+        'fouls_for': fouls_for / count,
+        'fouls_against': cfouls / ccount,
         'match_count': real_count
     }
 
@@ -725,6 +733,9 @@ def predict_fixture(
         "expected_home_shots": round(hf['shots_for'], 2),
         "expected_away_shots": round(af['shots_for'], 2),
         "expected_total_shots": round(hf['shots_for'] + af['shots_for'], 2),
+        "expected_home_fouls": round(hf['fouls_for'], 2),
+        "expected_away_fouls": round(af['fouls_for'], 2),
+        "expected_total_fouls": round(hf['fouls_for'] + af['fouls_for'], 2),
         "expected_home_sot": round(hf['sot_for'], 2),
         "expected_away_sot": round(af['sot_for'], 2),
         "expected_total_sot": round(hf['sot_for'] + af['sot_for'], 2),
