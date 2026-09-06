@@ -33,6 +33,9 @@ type PredictionResult struct {
 	ExpectedHomeShots      float64 `json:"expected_home_shots"`
 	ExpectedAwayShots      float64 `json:"expected_away_shots"`
 	ExpectedTotalShots     float64 `json:"expected_total_shots"`
+	ExpectedHomeFouls      float64 `json:"expected_home_fouls"`
+	ExpectedAwayFouls      float64 `json:"expected_away_fouls"`
+	ExpectedTotalFouls     float64 `json:"expected_total_fouls"`
 	ExpectedHomeSot        float64 `json:"expected_home_sot"`
 	ExpectedAwaySot        float64 `json:"expected_away_sot"`
 	ExpectedTotalSot       float64 `json:"expected_total_sot"`
