@@ -260,16 +260,22 @@ def analysis(league_code: str):
         n = len(tm)
         if n == 0:
             continue
-        shots = sot = corners = 0.0
+        shots = sot = corners = fouls = cards = 0.0
         for _, r in tm.iterrows():
             home = r['HomeTeam'] == t
             shots += (r['HS'] if home else r['AS']) if not pd.isna(r.get('HS')) else 0
             sot += (r['HST'] if home else r['AST']) if not pd.isna(r.get('HST')) else 0
             corners += (r['HC'] if home else r['AC']) if not pd.isna(r.get('HC')) else 0
+            fouls += (r['HF'] if home else r['AF']) if not pd.isna(r.get('HF')) else 0
+            hc = (r.get('HY',0) or 0) + (r.get('HR',0) or 0)
+            ac = (r.get('AY',0) or 0) + (r.get('AR',0) or 0)
+            cards += (hc if home else ac)
         out.append({"team": t, "games": n,
                     "shots_pg": round(shots / n, 1),
                     "sot_pg": round(sot / n, 1),
-                    "corners_pg": round(corners / n, 1)})
+                    "corners_pg": round(corners / n, 1),
+                    "fouls_pg": round(fouls / n, 1),
+                    "cards_pg": round(cards / n, 1)})
     return {"league": league_code, "season_start": str(season_start.date()), "teams": out}
 
 
