@@ -307,6 +307,12 @@ function MatchContent() {
                 <td>{p.expected_home_cards.toFixed(1)}</td>
                 <td>{p.expected_away_cards.toFixed(1)}</td>
                 <td>{p.expected_total_cards.toFixed(1)}</td></tr>
+              {p.expected_home_fouls != null && (
+              <tr><td>Fouls</td>
+                <td>{p.expected_home_fouls?.toFixed(1)}</td>
+                <td>{p.expected_away_fouls?.toFixed(1)}</td>
+                <td>{p.expected_total_fouls?.toFixed(1)}</td></tr>
+              )}
               {p.expected_home_shots != null && (
               <tr><td>Shots</td>
                 <td>{p.expected_home_shots?.toFixed(1)}</td>
