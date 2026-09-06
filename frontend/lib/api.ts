@@ -146,6 +146,8 @@ export interface TeamStat {
   shots_pg: number;
   sot_pg: number;
   corners_pg: number;
+  fouls_pg: number;
+  cards_pg: number;
 }
 
 export const getAnalysis = (
