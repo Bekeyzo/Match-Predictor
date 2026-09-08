@@ -80,6 +80,15 @@ func GetPrediction(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to decode prediction"})
 	}
 
+	// Stale-data guard: if Python refused because the league's data is behind the
+	// source, return the honest signal — do NOT cache or store a non-prediction.
+	if result.StaleData != nil && *result.StaleData {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"stale_data": true,
+			"reason":     result.Reason,
+		})
+	}
+
 	// Step 3 — Save to Redis for 6 hours
 	// Predictions for the same fixture don't change much within a day
 	// so we cache them to avoid hitting Python service repeatedly
