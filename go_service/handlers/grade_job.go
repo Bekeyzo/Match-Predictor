@@ -230,7 +230,7 @@ func fetchFinishedCoUk(leagueCode string) (map[string]finishedMatch, error) {
 	if !ok {
 		return nil, fmt.Errorf("no football-data.co.uk div for %s", leagueCode)
 	}
-	url := fmt.Sprintf("https://www.football-data.co.uk/mmz4281/%s/%s.csv", coUkSeason(time.Now()), div)
+	url := fmt.Sprintf("https://football-data.co.uk/mmz4281/%s/%s.csv", coUkSeason(time.Now()), div)
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; TehutiBot/1.0)")
 	client := &http.Client{Timeout: 15 * time.Second}

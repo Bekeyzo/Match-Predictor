@@ -28,7 +28,7 @@ func fetchFootballDataCoUk(leagueCode string) ([]models.Fixture, string, error) 
 		return nil, "", fmt.Errorf("no football-data.co.uk div for %s", leagueCode)
 	}
 
-	req, _ := http.NewRequest("GET", "https://www.football-data.co.uk/fixtures.csv", nil)
+	req, _ := http.NewRequest("GET", "https://football-data.co.uk/fixtures.csv", nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; TehutiBot/1.0)")
 	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
