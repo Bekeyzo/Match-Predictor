@@ -8,3 +8,4 @@ requests==2.32.3
 aio-pika==10.0.1
 APScheduler==3.11.3
 joblib==1.4.2
+redis
