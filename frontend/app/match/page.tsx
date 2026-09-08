@@ -46,6 +46,7 @@ function MatchContent() {
   const [cached, setCached] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [stale, setStale] = useState(false);
   const [unverified, setUnverified] = useState(false);
   const [resent, setResent] = useState(false);
 
@@ -79,7 +80,7 @@ function MatchContent() {
 
   const load = useCallback(() => {
     if (!home || !away || !date || !league) return;
-    setLoading(true); setError(''); setUnverified(false);
+    setLoading(true); setError(''); setUnverified(false); setStale(false);
     if (stored) {
       getPredictionHistory(league, date)
         .then(res => {
@@ -94,7 +95,10 @@ function MatchContent() {
       return;
     }
     getPrediction(home, away, date, league)
-      .then(res => { setP(res.data.prediction); setCached(res.data.cached); })
+      .then(res => {
+        if ((res.data as { stale_data?: boolean }).stale_data) { setStale(true); return; }
+        setP(res.data.prediction); setCached(res.data.cached);
+      })
       .catch((err: unknown) => {
         const code = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
         if (code === 'unverified') setUnverified(true);
@@ -191,6 +195,17 @@ function MatchContent() {
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  if (stale) return (
+    <div className="state">
+      <div className="side-title">Refreshing this league</div>
+      <p style={{ maxWidth:440, margin:'12px auto 0', lineHeight:1.5 }}>
+        We're updating to the latest results before we call this one. Tehuti won't
+        predict on out-of-date form — check back shortly.
+      </p>
+      <a href="/" className="back" style={{ marginTop:18 }}>← Back to leagues</a>
     </div>
   );
 
