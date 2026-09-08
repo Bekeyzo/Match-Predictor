@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+import freshness
 from predictor import (
     download_league_data,
     load_league_data,
@@ -65,6 +66,24 @@ def retrain_all_leagues():
     for league_code in LEAGUE_FILES.keys():
         load_and_train(league_code, force_retrain=True)
     print("✅ Scheduled retrain complete")
+
+
+def check_freshness_and_heal():
+    """Compare each league to the source; flag stale ones and auto-retrain them
+    (self-healing). Runs on a schedule + once at startup."""
+    print("🔎 Freshness check starting...")
+    try:
+        status = freshness.refresh_all(
+            auto_retrain=True,
+            retrain_fn=lambda lg: load_and_train(lg, force_retrain=True),
+        )
+        stale = [lg for lg, r in status["leagues"].items() if r.get("stale")]
+        if stale:
+            print(f"⚠️  Freshness: still stale after heal attempt: {stale}")
+        else:
+            print("✅ Freshness check complete — all leagues current")
+    except Exception as e:
+        print(f"⚠️  Freshness check error: {e}")
 
 
 def grade_all_leagues():
@@ -131,6 +150,19 @@ async def lifespan(app: FastAPI):
         hour=6,
         minute=0,
     )
+    scheduler.add_job(
+        check_freshness_and_heal,
+        trigger="interval",
+        hours=3,
+    )
+    # date_trigger_freshness: also run once ~2 min after startup so the status
+    # file exists promptly (models finish loading first; check doesn't block boot)
+    from datetime import timedelta as _td
+    scheduler.add_job(
+        check_freshness_and_heal,
+        trigger="date",
+        run_date=datetime.now() + _td(minutes=2),
+    )
     scheduler.start()
     print("📅 Auto-update scheduler started (retrain Mon & Thu 08:00, grading daily 06:00)")
     
@@ -195,6 +227,15 @@ def predict(req: PredictionRequest):
             status_code=404,
             detail=f"No model loaded for league: {req.league_code}"
         )
+
+    # Freshness guard: never predict on stale data. If the source has newer
+    # results than we do (a played round we failed to pull), return an honest
+    # error instead of predicting on out-of-date form.
+    if freshness.is_stale(req.league_code):
+        return {
+            "stale_data": True,
+            "reason": "Predictions for this league are temporarily unavailable while we update to the latest results.",
+        }
 
     model, le, all_data, name_index, _stats = model_cache[req.league_code]
 
