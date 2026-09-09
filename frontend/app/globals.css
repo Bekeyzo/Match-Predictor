@@ -694,7 +694,7 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
   display:flex; align-items:center; gap:8px; justify-content:center;
   font-size:14px; font-weight:600; color: var(--ink-2, #8b86a8);
   padding:10px 14px; margin-bottom:4px;
-  background: var(--card-2, rgba(127,119,221,0.06)); border-radius:10px;
+  background: var(--card-2, rgba(79,209,181,0.06)); border-radius:10px;
 }
 .tally-right { color: var(--win, #1F7A4D); font-weight:800; }
 .tally-wrong { color: var(--loss, #C0392B); font-weight:800; }
