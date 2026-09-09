@@ -99,17 +99,23 @@ a { color:inherit; text-decoration:none; }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --paper:  #131117;
-  --card:   #1C1922;
-  --ink:    #F2EFF5;
-  --ink-2:  #A9A2B4;
-  --ink-3:  #7C7488;
-  --rule:   #2E2937;
-  --purple: #A78BFA;
-  --purple-lt: #C4B5FD;
-  --wash:   #241F30;
-  --nav-bg: #0D0B11;
-  --nav-fg: #F2EFF5;
+  --paper:  #12100F;
+  --card:   #1C1A18;
+  --card-2: #232120;
+  --ink:    #F5F1EC;
+  --ink-2:  #A39A8F;
+  --ink-3:  #7C7468;
+  --rule:   #322F2C;
+  --purple: #4FD1B5;
+  --purple-lt: #7BE0CA;
+  --wash:   #1E2A27;
+  --home:   #6A8DFF;
+  --away:   #FF8A6B;
+  --draw:   #4A463F;
+  --win:    #5BC88A;
+  --loss:   #FF8A6B;
+  --nav-bg: #0C0B0A;
+  --nav-fg: #F5F1EC;
 }
 
 /* nav follows the theme instead of always being ink */
