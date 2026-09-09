@@ -245,6 +245,9 @@ function MatchContent() {
     : pickTier === 'lean' ? 'Model leans this way' : 'Close call';
   const pickLabel = outcomes[0].label;
   const pickPct = outcomes[0].v;
+  // match-winner (H/D/A) for the "backing X to win" call bar — distinct from the top market pick
+  const winTeam = called === 'H' ? p.home_team : called === 'A' ? p.away_team : 'a draw';
+  const winPct = called === 'H' ? p.home_win_prob_pct : called === 'A' ? p.away_win_prob_pct : p.draw_prob_pct;
 
   return (
     <div>
@@ -277,95 +280,77 @@ function MatchContent() {
           </div>
         </div>
 
-        <div className="strip-wrap">
-          <div className="strip-legend">
-            <span className="strip-item" style={{ color:'var(--home)' }}>
-              Home<span className="num">{p.home_win_prob_pct.toFixed(1)}%</span></span>
-            <span className="strip-item" style={{ color:'var(--draw)' }}>
-              Draw<span className="num">{p.draw_prob_pct.toFixed(1)}%</span></span>
-            <span className="strip-item" style={{ color:'var(--away)' }}>
-              Away<span className="num">{p.away_win_prob_pct.toFixed(1)}%</span></span>
+        <div className="body">
+        {/* HERO megabar — three-segment with numbers inside */}
+        <div className="k-hero">
+          <div className="k-hero-labels">
+            <div className="k-hl"><div className="t">{p.home_team} win</div><div className="p num">{p.home_win_prob_pct.toFixed(1)}%</div></div>
+            <div className="k-hl mid"><div className="t">Draw</div><div className="p num">{p.draw_prob_pct.toFixed(1)}%</div></div>
+            <div className="k-hl right"><div className="t">{p.away_team} win</div><div className="p num">{p.away_win_prob_pct.toFixed(1)}%</div></div>
           </div>
-          <div className="strip">
-            <div className={`strip-seg${called==='H'?' on':''}`}
-                 style={{ width: run ? `${p.home_win_prob_pct}%` : 0, background:'var(--home)' }} />
-            <div className={`strip-seg${called==='D'?' on':''}`}
-                 style={{ width: run ? `${p.draw_prob_pct}%` : 0, background:'var(--draw)', transitionDelay:'.07s' }} />
-            <div className={`strip-seg${called==='A'?' on':''}`}
-                 style={{ width: run ? `${p.away_win_prob_pct}%` : 0, background:'var(--away)', transitionDelay:'.14s' }} />
-          </div>
-          <div className={`pick-card pick-${pickTier} ${run ? 'in' : ''}`}>
-            <div className="pick-head">
-              <span className="pick-eyebrow">MODEL&rsquo;S PICK</span>
-              <span className="pick-conf">{pickChip}</span>
-            </div>
-            <div className="pick-body">
-              <span className="pick-label">{pickLabel}</span>
-              <span className="pick-pct">{pickPct.toFixed(0)}%</span>
-            </div>
+          <div className="k-megabar">
+            <div className="k-mseg h" style={{ width: run ? `${p.home_win_prob_pct}%` : 0 }}><span className="lab">{p.home_win_prob_pct.toFixed(0)}</span></div>
+            <div className="k-mseg d" style={{ width: run ? `${p.draw_prob_pct}%` : 0 }}><span className="lab">{p.draw_prob_pct.toFixed(0)}</span></div>
+            <div className="k-mseg a" style={{ width: run ? `${p.away_win_prob_pct}%` : 0 }}><span className="lab">{p.away_win_prob_pct.toFixed(0)}</span></div>
           </div>
         </div>
 
-        <div className="body">
-          <table className="stat-table">
-            <thead><tr><th>Expected</th><th>Home</th><th>Away</th><th>Total</th></tr></thead>
-            <tbody>
-              <tr><td>Goals</td>
-                <td className="lead">{p.expected_home_goals.toFixed(2)}</td>
-                <td className="lead">{p.expected_away_goals.toFixed(2)}</td>
-                <td>{p.expected_total_goals.toFixed(2)}</td></tr>
-              <tr><td>Corners</td>
-                <td>{p.expected_home_corners.toFixed(1)}</td>
-                <td>{p.expected_away_corners.toFixed(1)}</td>
-                <td>{p.expected_total_corners.toFixed(1)}</td></tr>
-              <tr><td>Cards</td>
-                <td>{p.expected_home_cards.toFixed(1)}</td>
-                <td>{p.expected_away_cards.toFixed(1)}</td>
-                <td>{p.expected_total_cards.toFixed(1)}</td></tr>
-              {p.expected_home_fouls != null && (
-              <tr><td>Fouls</td>
-                <td>{p.expected_home_fouls?.toFixed(1)}</td>
-                <td>{p.expected_away_fouls?.toFixed(1)}</td>
-                <td>{p.expected_total_fouls?.toFixed(1)}</td></tr>
-              )}
-              {p.expected_home_shots != null && (
-              <tr><td>Shots</td>
-                <td>{p.expected_home_shots?.toFixed(1)}</td>
-                <td>{p.expected_away_shots?.toFixed(1)}</td>
-                <td>{p.expected_total_shots?.toFixed(1)}</td></tr>
-              )}
-              {p.expected_home_sot != null && (
-              <tr><td>On Target</td>
-                <td>{p.expected_home_sot?.toFixed(1)}</td>
-                <td>{p.expected_away_sot?.toFixed(1)}</td>
-                <td>{p.expected_total_sot?.toFixed(1)}</td></tr>
-              )}
-            </tbody>
-          </table>
-
-          <div className="markets">
-            <div>
-              <div className="market-val">{p.most_likely_score}</div>
-              <div className="eyebrow" style={{ marginTop:4 }}>
-                Likeliest · {p.prob_most_likely_score_pct.toFixed(1)}%</div>
-            </div>
-            <div>
-              <div className="market-val">{p.btts_prob_pct.toFixed(0)}%</div>
-              <div className="eyebrow" style={{ marginTop:4 }}>Both score</div>
-            </div>
-            <div>
-              <div className="market-val">{p.prob_over_1_5_pct.toFixed(0)}%</div>
-              <div className="eyebrow" style={{ marginTop:4 }}>Over 1.5</div>
-            </div>
-            <div>
-              <div className="market-val">{p.prob_over_2_5_pct.toFixed(0)}%</div>
-              <div className="eyebrow" style={{ marginTop:4 }}>Over 2.5</div>
-            </div>
-            <div>
-              <div className="market-val">{p.prob_over_3_5_pct.toFixed(0)}%</div>
-              <div className="eyebrow" style={{ marginTop:4 }}>Over 3.5</div>
-            </div>
+        {/* CALL bar — "Our model is backing X to win" */}
+        <div className="k-callbar">
+          <div>
+            <div className="k-call-lb">Our model is backing</div>
+            <div className="k-call-pick"><b>{winTeam}</b>{called==='D' ? '' : ' to win'}</div>
           </div>
+          <div className="k-call-pct num">{winPct.toFixed(0)}%</div>
+        </div>
+
+        {/* GOALS cards */}
+        <div className="k-sh">Goals <span className="sub">what we expect</span></div>
+        <div className="k-stats">
+          <div className="k-stat">
+            <div className="row"><span className="k">{p.home_team} goals</span><span className="v num">{p.expected_home_goals.toFixed(2)}</span></div>
+            <div className="row"><span className="k">{p.away_team} goals</span><span className="v num">{p.expected_away_goals.toFixed(2)}</span></div>
+          </div>
+          <div className="k-stat">
+            <div className="row"><span className="k">Likeliest score</span><span className="v num">{p.most_likely_score}</span></div>
+            <div className="row"><span className="k">Total goals</span><span className="v num">{p.expected_total_goals.toFixed(2)}</span></div>
+          </div>
+        </div>
+
+        {/* MARKETS — prominent cards */}
+        <div className="k-sh">Match markets <span className="sub">chance of each happening</span></div>
+        <div className="k-markets">
+          <div className="k-mkt"><div className="pct num hot">{p.prob_over_1_5_pct.toFixed(0)}%</div><div className="nm">Over 1.5</div><div className="bar"><i style={{ width: run ? `${p.prob_over_1_5_pct}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.prob_over_2_5_pct.toFixed(0)}%</div><div className="nm">Over 2.5</div><div className="bar"><i style={{ width: run ? `${p.prob_over_2_5_pct}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.prob_over_3_5_pct.toFixed(0)}%</div><div className="nm">Over 3.5</div><div className="bar"><i style={{ width: run ? `${p.prob_over_3_5_pct}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.btts_prob_pct.toFixed(0)}%</div><div className="nm">Both score</div><div className="bar"><i style={{ width: run ? `${p.btts_prob_pct}%` : 0 }} /></div></div>
+        </div>
+
+        {/* SHOTS & CORNERS cards */}
+        <div className="k-sh">Shots &amp; corners</div>
+        <div className="k-stats">
+          <div className="k-stat">
+            <div className="row"><span className="k">Shots ({p.home_team})</span><span className="v num">{p.expected_home_shots != null ? p.expected_home_shots.toFixed(1) : '—'}</span></div>
+            <div className="row"><span className="k">Shots ({p.away_team})</span><span className="v num">{p.expected_away_shots != null ? p.expected_away_shots.toFixed(1) : '—'}</span></div>
+          </div>
+          <div className="k-stat">
+            <div className="row"><span className="k">Corners ({p.home_team})</span><span className="v num">{p.expected_home_corners.toFixed(1)}</span></div>
+            <div className="row"><span className="k">Corners ({p.away_team})</span><span className="v num">{p.expected_away_corners.toFixed(1)}</span></div>
+          </div>
+        </div>
+
+        {/* CARDS & FOULS cards */}
+        <div className="k-sh">Cards &amp; fouls</div>
+        <div className="k-stats">
+          <div className="k-stat">
+            <div className="row"><span className="k">Cards ({p.home_team})</span><span className="v num">{p.expected_home_cards.toFixed(1)}</span></div>
+            <div className="row"><span className="k">Cards ({p.away_team})</span><span className="v num">{p.expected_away_cards.toFixed(1)}</span></div>
+          </div>
+          <div className="k-stat">
+            <div className="row"><span className="k">Fouls ({p.home_team})</span><span className="v num">{p.expected_home_fouls != null ? p.expected_home_fouls.toFixed(1) : '—'}</span></div>
+            <div className="row"><span className="k">Fouls ({p.away_team})</span><span className="v num">{p.expected_away_fouls != null ? p.expected_away_fouls.toFixed(1) : '—'}</span></div>
+          </div>
+        </div>
 
           <p className="pred-disclaimer">
             AI-generated estimate from past results — a guide, not a guarantee.
