@@ -29,6 +29,15 @@ var teamAliases = map[string]string{
 	"sbv excelsior": "excelsior",
 	"nec": "nijmegen",
 	"sporting clube de braga": "sp braga",
+	"afc ajax": "ajax",
+	"psv": "psv eindhoven",
+	"willem ii tilburg": "willem ii",
+	"fc groningen": "groningen",
+	"fc twente '65": "twente",
+	"sc heerenveen": "heerenveen",
+	"az": "az alkmaar",
+	"ado den haag": "den haag",
+	"fortuna sittard": "for sittard",
 }
 
 // normTeam lowercases, strips suffixes, then applies the alias map.
