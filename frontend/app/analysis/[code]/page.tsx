@@ -27,7 +27,7 @@ export default function AnalysisPage() {
 
   const Table = ({ title, rows, metric, extra }: { title: string; rows: TeamStat[]; metric: 'shots_pg' | 'corners_pg' | 'fouls_pg' | 'cards_pg'; extra?: 'sot_pg' }) => (
     <div style={{ marginBottom: 40 }}>
-      <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 12, color: '#1E1B4B' }}>{title}</h2>
+      <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 12, color: 'var(--purple)' }}>{title}</h2>
       <table className="stat-table" style={{ width: '100%' }}>
         <thead>
           <tr>
