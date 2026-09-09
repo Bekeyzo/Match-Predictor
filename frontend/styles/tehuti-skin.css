@@ -1,0 +1,41 @@
+/* Tehuti skin, pass 1: paint only.
+   Retunes the variables globals.css already uses. No layout, no shapes,
+   no component changes. Every colour is defined in BOTH theme blocks,
+   which is the rule that keeps text from vanishing in one of them. */
+
+:root,
+[data-theme="light"] {
+  --paper:#FBFAF7;
+  --card:#FFFFFF;
+  --ink:#17151C;
+  --ink-2:#55515F;
+  --ink-3:#6E6979;
+  --rule:#DFDCD4;
+  --purple:#5B4FD6;
+  --purple-lt:#8B7BE8;
+  --wash:#F1EFFB;
+  --nav-bg:#17151C;
+  --nav-fg:#F5F3EF;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --paper:#17151C;
+  --card:#1F1C26;
+  --ink:#F5F3EF;
+  --ink-2:#B4AFBE;
+  --ink-3:#8E8899;
+  --rule:#312D3B;
+  --purple:#A79FED;
+  --purple-lt:#B595E9;
+  --wash:#251F3A;
+  --nav-bg:#0E0D12;
+  --nav-fg:#F5F3EF;
+  color-scheme: dark;
+}
+
+/* Headings pick up the display face. Body text and numbers are untouched. */
+h1, h2, h3 {
+  font-family: var(--font-bricolage), var(--font-display), Arial, sans-serif;
+  letter-spacing: -.03em;
+}
