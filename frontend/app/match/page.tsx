@@ -371,10 +371,10 @@ function MatchContent() {
             AI-generated estimate from past results — a guide, not a guarantee.
           </p>
 
-          <a href={`/analysis/${league}`} className="h2h-btn" style={{ display:'block', textAlign:'center', width:'100%', padding:'12px', marginTop:'8px', borderRadius:'10px', border:'1px solid var(--border, #e5e5e5)', background:'transparent', color:'var(--home, #7C3AED)', fontWeight:700, fontSize:'13px', textDecoration:'none', letterSpacing:'0.5px', textTransform:'uppercase' }}>
+          <a href={`/analysis/${league}`} className="h2h-btn" style={{ display:'block', textAlign:'center', width:'100%', padding:'12px', marginTop:'8px', borderRadius:'10px', border:'1px solid var(--rule, #322F2C)', background:'transparent', color:'var(--purple, #4FD1B5)', fontWeight:700, fontSize:'13px', textDecoration:'none', letterSpacing:'0.5px', textTransform:'uppercase' }}>
             More analysis →
           </a>
-          <button onClick={toggleH2H} className="h2h-btn" style={{ width:'100%', padding:'12px', marginTop:'8px', borderRadius:'10px', border:'1px solid var(--border, #e5e5e5)', background:'transparent', color:'var(--home, #7C3AED)', fontWeight:700, fontSize:'13px', cursor:'pointer', letterSpacing:'0.5px', textTransform:'uppercase' }}>
+          <button onClick={toggleH2H} className="h2h-btn" style={{ width:'100%', padding:'12px', marginTop:'8px', borderRadius:'10px', border:'1px solid var(--rule, #322F2C)', background:'transparent', color:'var(--purple, #4FD1B5)', fontWeight:700, fontSize:'13px', cursor:'pointer', letterSpacing:'0.5px', textTransform:'uppercase' }}>
             {h2hOpen ? 'Hide head-to-head' : 'Head-to-head · last 5'}
           </button>
           {h2hOpen && (
@@ -385,7 +385,7 @@ function MatchContent() {
               )}
               {!h2hLoading && h2h && h2h.length > 0 && (
                 <div style={{ marginTop:'14px', borderTop:'1px solid var(--border, #eee)', paddingTop:'12px' }}>
-                  <button onClick={() => setVenOpen(venOpen==='home'?'none':'home')} className="ven-link" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 4px', background:'transparent', border:'none', color:'var(--home, #7C3AED)', fontWeight:600, fontSize:'13px', cursor:'pointer' }}>
+                  <button onClick={() => setVenOpen(venOpen==='home'?'none':'home')} className="ven-link" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 4px', background:'transparent', border:'none', color:'var(--purple, #4FD1B5)', fontWeight:600, fontSize:'13px', cursor:'pointer' }}>
                     {venOpen==='home' ? '▾ ' : '▸ '}See {h2hNames.home}'s last 5 at home
                   </button>
                   {venOpen==='home' && (
@@ -395,13 +395,13 @@ function MatchContent() {
                         <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 10px', borderRadius:'8px', background: i%2===0?'rgba(124,58,237,0.04)':'transparent', fontSize:'13px' }}>
                           <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
                           <span style={{ flex:1, textAlign:'right', fontWeight: m.winner===m.home?700:400 }}>{m.home}</span>
-                          <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--home, #7C3AED)' }}>{m.score}</span>
+                          <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--purple, #4FD1B5)' }}>{m.score}</span>
                           <span style={{ flex:1, textAlign:'left', fontWeight: m.winner===m.away?700:400 }}>{m.away}</span>
                         </div>
                       ))}
                     </div>
                   )}
-                  <button onClick={() => setVenOpen(venOpen==='away'?'none':'away')} className="ven-link" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 4px', background:'transparent', border:'none', color:'var(--home, #7C3AED)', fontWeight:600, fontSize:'13px', cursor:'pointer' }}>
+                  <button onClick={() => setVenOpen(venOpen==='away'?'none':'away')} className="ven-link" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 4px', background:'transparent', border:'none', color:'var(--purple, #4FD1B5)', fontWeight:600, fontSize:'13px', cursor:'pointer' }}>
                     {venOpen==='away' ? '▾ ' : '▸ '}See {h2hNames.away}'s last 5 at home
                   </button>
                   {venOpen==='away' && (
@@ -411,7 +411,7 @@ function MatchContent() {
                         <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 10px', borderRadius:'8px', background: i%2===0?'rgba(124,58,237,0.04)':'transparent', fontSize:'13px' }}>
                           <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
                           <span style={{ flex:1, textAlign:'right', fontWeight: m.winner===m.home?700:400 }}>{m.home}</span>
-                          <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--home, #7C3AED)' }}>{m.score}</span>
+                          <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--purple, #4FD1B5)' }}>{m.score}</span>
                           <span style={{ flex:1, textAlign:'left', fontWeight: m.winner===m.away?700:400 }}>{m.away}</span>
                         </div>
                       ))}
@@ -427,7 +427,7 @@ function MatchContent() {
                 <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 10px', borderRadius:'8px', background: i % 2 === 0 ? 'rgba(124,58,237,0.04)' : 'transparent', fontSize:'13px' }}>
                   <span className="eyebrow" style={{ width:'74px', fontFamily:'monospace' }}>{m.date}</span>
                   <span style={{ flex:1, textAlign:'right', fontWeight: m.winner === m.home ? 700 : 400 }}>{m.home}</span>
-                  <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--home, #7C3AED)' }}>{m.score}</span>
+                  <span style={{ padding:'0 10px', fontWeight:800, fontFamily:'monospace', color:'var(--purple, #4FD1B5)' }}>{m.score}</span>
                   <span style={{ flex:1, textAlign:'left', fontWeight: m.winner === m.away ? 700 : 400 }}>{m.away}</span>
                 </div>
               ))}
