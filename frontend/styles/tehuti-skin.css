@@ -1,41 +1,51 @@
-/* Tehuti skin, pass 1: paint only.
-   Retunes the variables globals.css already uses. No layout, no shapes,
-   no component changes. Every colour is defined in BOTH theme blocks,
-   which is the rule that keeps text from vanishing in one of them. */
+/* Tehuti skin — Kinetic v3. Paint layer: retunes the variables globals.css
+   uses. Every colour defined in BOTH theme blocks so text never vanishes. */
 
 :root,
 [data-theme="light"] {
-  --paper:#FBFAF7;
+  --paper:#F7F4EF;
   --card:#FFFFFF;
-  --ink:#17151C;
-  --ink-2:#55515F;
-  --ink-3:#6E6979;
-  --rule:#DFDCD4;
-  --purple:#5B4FD6;
-  --purple-lt:#8B7BE8;
-  --wash:#F1EFFB;
-  --nav-bg:#17151C;
-  --nav-fg:#F5F3EF;
+  --card-2:#F3EFE8;
+  --ink:#1A1712;
+  --ink-2:#5C5546;
+  --ink-3:#8A8172;
+  --rule:#E4DDD0;
+  --purple:#1F9E86;        /* teal accent (light) */
+  --purple-lt:#4FD1B5;
+  --wash:#E8F5F1;
+  --home:#4363C7;
+  --away:#E0623C;
+  --draw:#B8AE9C;
+  --win:#1F7A4D;
+  --loss:#C0392B;
+  --nav-bg:#1A1712;
+  --nav-fg:#F7F4EF;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --paper:#17151C;
-  --card:#1F1C26;
-  --ink:#F5F3EF;
-  --ink-2:#B4AFBE;
-  --ink-3:#8E8899;
-  --rule:#312D3B;
-  --purple:#A79FED;
-  --purple-lt:#B595E9;
-  --wash:#251F3A;
-  --nav-bg:#0E0D12;
-  --nav-fg:#F5F3EF;
+  --paper:#12100F;
+  --card:#1C1A18;
+  --card-2:#232120;
+  --ink:#F5F1EC;
+  --ink-2:#A39A8F;
+  --ink-3:#7C7468;
+  --rule:#322F2C;
+  --purple:#4FD1B5;        /* teal accent (dark) */
+  --purple-lt:#7BE0CA;
+  --wash:#1E2A27;
+  --home:#6A8DFF;
+  --away:#FF8A6B;
+  --draw:#4A463F;
+  --win:#5BC88A;
+  --loss:#FF8A6B;
+  --nav-bg:#0C0B0A;
+  --nav-fg:#F5F1EC;
   color-scheme: dark;
 }
 
-/* Headings pick up the display face. Body text and numbers are untouched. */
+/* Headings pick up the display face (Geist). */
 h1, h2, h3 {
-  font-family: var(--font-bricolage), var(--font-display), Arial, sans-serif;
+  font-family: var(--font-display), Arial, sans-serif;
   letter-spacing: -.03em;
 }
