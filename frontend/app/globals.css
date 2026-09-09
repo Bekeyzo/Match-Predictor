@@ -166,7 +166,7 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
 .aurora-blob { position:absolute; border-radius:50%; filter:blur(70px); opacity:.5; }
 .aurora-1 { width:460px; height:460px; background:#4FD1B5; top:-160px; left:-100px;
   animation:drift1 22s ease-in-out infinite; }
-.aurora-2 { width:380px; height:380px; background:#6D28D9; top:-60px; right:-120px;
+.aurora-2 { width:380px; height:380px; background:#6A8DFF; top:-60px; right:-120px;
   opacity:.28; animation:drift2 27s ease-in-out infinite; }
 .aurora-3 { width:300px; height:300px; background:#F5C451; top:180px; left:38%;
   opacity:.16; animation:drift3 32s ease-in-out infinite; }
@@ -679,7 +679,7 @@ body, .nav, .flag-tile, .feat-card, .crest-tile {
   display: flex; flex-direction: column; align-items: center; text-align: center;
   gap: 12px; padding: 56px 24px; color: var(--ink-2, #8b86a8);
 }
-.empty-fixtures svg { color: var(--purple, #7F77DD); opacity: 0.7; }
+.empty-fixtures svg { color: var(--purple, #4FD1B5); opacity: 0.7; }
 .empty-title { font-family: var(--display, sans-serif); font-weight: 700; font-size: 20px; color: var(--ink); }
 .empty-sub { font-size: 14px; line-height: 1.5; max-width: 340px; }
 

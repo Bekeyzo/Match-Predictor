@@ -20,7 +20,7 @@ export default function LeagueCard({ league }: { league: League }) {
         gap: '16px',
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = '#7C3AED';
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--purple)';
         (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(124, 58, 237, 0.15)';
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
       }}
@@ -39,7 +39,7 @@ export default function LeagueCard({ league }: { league: League }) {
           {league.code}
         </div>
       </div>
-      <div style={{ marginLeft: 'auto', color: '#7C3AED', fontSize: '18px' }}>→</div>
+      <div style={{ marginLeft: 'auto', color: 'var(--purple)', fontSize: '18px' }}>→</div>
     </div>
   );
 }

@@ -44,7 +44,7 @@ export default function FixtureCard({
         gap: '12px',
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = '#7C3AED';
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--purple)';
         (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(124, 58, 237, 0.12)';
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)';
       }}
@@ -57,7 +57,7 @@ export default function FixtureCard({
       {/* Kickoff time */}
       <div style={{
         background: '#EDE9FE',
-        color: '#7C3AED',
+        color: 'var(--purple)',
         padding: '6px 10px',
         borderRadius: '6px',
         fontSize: '13px',
