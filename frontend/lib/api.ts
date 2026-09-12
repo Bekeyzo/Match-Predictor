@@ -87,6 +87,12 @@ export interface PredictionResult {
   prob_over_7_5_sot?: number;
   prob_over_9_5_sot?: number;
   expected_blended_shots?: number;
+  expected_home_saves?: number;
+  expected_away_saves?: number;
+  expected_total_saves?: number;
+  prob_over_4_5_saves?: number;
+  prob_over_5_5_saves?: number;
+  prob_over_6_5_saves?: number;
   expected_home_sot?: number;
   expected_away_sot?: number;
   expected_total_sot?: number;

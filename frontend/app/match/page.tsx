@@ -355,6 +355,29 @@ function MatchContent() {
         </div>
 
         {/* CARDS & FOULS cards */}
+
+        {/* KEEPER SAVES — expected + over/under market */}
+        {p.expected_total_saves != null && (
+        <>
+        <div className="k-sh">Keeper saves <span className="sub">shots on target, minus goals</span></div>
+        <div className="k-stats">
+          <div className="k-stat">
+            <div className="row"><span className="k">{p.home_team} keeper</span><span className="v num">{p.expected_home_saves?.toFixed(1)}</span></div>
+            <div className="row"><span className="k">{p.away_team} keeper</span><span className="v num">{p.expected_away_saves?.toFixed(1)}</span></div>
+          </div>
+          <div className="k-stat">
+            <div className="row"><span className="k">Total saves</span><span className="v num">{p.expected_total_saves?.toFixed(1)}</span></div>
+            <div className="row"><span className="k">&nbsp;</span><span className="v num">&nbsp;</span></div>
+          </div>
+        </div>
+        <div className="k-markets" style={{ marginTop:12 }}>
+          <div className="k-mkt"><div className="pct num hot">{p.prob_over_4_5_saves?.toFixed(0)}%</div><div className="nm">Over 4.5 saves</div><div className="bar"><i style={{ width: run ? `${p.prob_over_4_5_saves}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.prob_over_5_5_saves?.toFixed(0)}%</div><div className="nm">Over 5.5 saves</div><div className="bar"><i style={{ width: run ? `${p.prob_over_5_5_saves}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.prob_over_6_5_saves?.toFixed(0)}%</div><div className="nm">Over 6.5 saves</div><div className="bar"><i style={{ width: run ? `${p.prob_over_6_5_saves}%` : 0 }} /></div></div>
+        </div>
+        </>
+        )}
+
         <div className="k-sh">Cards &amp; fouls</div>
         <div className="k-stats">
           <div className="k-stat">
