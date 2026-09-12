@@ -716,6 +716,11 @@ def predict_fixture(
     def _p_over(line, lam):
         return round((1 - sum(poisson_pmf(k, lam) for k in range(int(line) + 1))) * 100, 1)
 
+    # ---- keeper saves (derived: SoT faced minus goals conceded) ----
+    _home_saves = max((af['sot_for'] - af['gf']), 0.0)
+    _away_saves = max((hf['sot_for'] - hf['gf']), 0.0)
+    _exp_saves_total = _home_saves + _away_saves
+
     return {
         "fixture": f"{home} vs {away}",
         "home_team": home,
@@ -754,4 +759,10 @@ def predict_fixture(
         "prob_over_7_5_sot": _p_over(7.5, _exp_sot_total),
         "prob_over_9_5_sot": _p_over(9.5, _exp_sot_total),
         "expected_blended_shots": round(_exp_shots_total, 1),
+        "expected_home_saves": round(_home_saves, 1),
+        "expected_away_saves": round(_away_saves, 1),
+        "expected_total_saves": round(_exp_saves_total, 1),
+        "prob_over_4_5_saves": _p_over(4.5, _exp_saves_total),
+        "prob_over_5_5_saves": _p_over(5.5, _exp_saves_total),
+        "prob_over_6_5_saves": _p_over(6.5, _exp_saves_total),
     }
