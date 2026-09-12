@@ -326,6 +326,21 @@ function MatchContent() {
           <div className="k-mkt"><div className="pct num">{p.btts_prob_pct.toFixed(0)}%</div><div className="nm">Both score</div><div className="bar"><i style={{ width: run ? `${p.btts_prob_pct}%` : 0 }} /></div></div>
         </div>
 
+
+        {/* SHOTS MARKETS — over/under from team form (blend + Poisson) */}
+        {p.prob_over_20_5_shots != null && (
+        <>
+        <div className="k-sh">Shots markets <span className="sub">chance of hitting each line</span></div>
+        <div className="k-markets">
+          <div className="k-mkt"><div className="pct num hot">{p.prob_over_20_5_shots?.toFixed(0)}%</div><div className="nm">Over 20.5 shots</div><div className="bar"><i style={{ width: run ? `${p.prob_over_20_5_shots}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.prob_over_23_5_shots?.toFixed(0)}%</div><div className="nm">Over 23.5 shots</div><div className="bar"><i style={{ width: run ? `${p.prob_over_23_5_shots}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.prob_over_26_5_shots?.toFixed(0)}%</div><div className="nm">Over 26.5 shots</div><div className="bar"><i style={{ width: run ? `${p.prob_over_26_5_shots}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.prob_over_7_5_sot?.toFixed(0)}%</div><div className="nm">Over 7.5 on target</div><div className="bar"><i style={{ width: run ? `${p.prob_over_7_5_sot}%` : 0 }} /></div></div>
+          <div className="k-mkt"><div className="pct num">{p.prob_over_9_5_sot?.toFixed(0)}%</div><div className="nm">Over 9.5 on target</div><div className="bar"><i style={{ width: run ? `${p.prob_over_9_5_sot}%` : 0 }} /></div></div>
+        </div>
+        </>
+        )}
+
         {/* SHOTS & CORNERS cards */}
         <div className="k-sh">Shots &amp; corners</div>
         <div className="k-stats">

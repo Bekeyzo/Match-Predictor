@@ -81,6 +81,12 @@ export interface PredictionResult {
   expected_home_fouls?: number;
   expected_away_fouls?: number;
   expected_total_fouls?: number;
+  prob_over_20_5_shots?: number;
+  prob_over_23_5_shots?: number;
+  prob_over_26_5_shots?: number;
+  prob_over_7_5_sot?: number;
+  prob_over_9_5_sot?: number;
+  expected_blended_shots?: number;
   expected_home_sot?: number;
   expected_away_sot?: number;
   expected_total_sot?: number;
