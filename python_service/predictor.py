@@ -707,6 +707,15 @@ def predict_fixture(
     probs = scoreline_probs(exp_home, exp_away)
     most_likely = max(probs.items(), key=lambda kv: kv[1])[0]
 
+    # ---- shot / SoT over-under markets (defensive blend + Poisson) ----
+    _exp_shots_total = ((hf['shots_for'] + af['shots_against']) / 2
+                        + (af['shots_for'] + hf['shots_against']) / 2)
+    _exp_sot_total = ((hf['sot_for'] + af['sot_against']) / 2
+                      + (af['sot_for'] + hf['sot_against']) / 2)
+
+    def _p_over(line, lam):
+        return round((1 - sum(poisson_pmf(k, lam) for k in range(int(line) + 1))) * 100, 1)
+
     return {
         "fixture": f"{home} vs {away}",
         "home_team": home,
@@ -739,4 +748,10 @@ def predict_fixture(
         "expected_home_sot": round(hf['sot_for'], 2),
         "expected_away_sot": round(af['sot_for'], 2),
         "expected_total_sot": round(hf['sot_for'] + af['sot_for'], 2),
+        "prob_over_20_5_shots": _p_over(20.5, _exp_shots_total),
+        "prob_over_23_5_shots": _p_over(23.5, _exp_shots_total),
+        "prob_over_26_5_shots": _p_over(26.5, _exp_shots_total),
+        "prob_over_7_5_sot": _p_over(7.5, _exp_sot_total),
+        "prob_over_9_5_sot": _p_over(9.5, _exp_sot_total),
+        "expected_blended_shots": round(_exp_shots_total, 1),
     }
