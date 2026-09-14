@@ -358,7 +358,7 @@ def trends():
     stats = ['shots', 'corners', 'fouls', 'cards']
     # gather per-league data once
     league_cur = {}
-    for lg in DATA_URLS.keys():
+    for lg in model_cache.keys():
         try:
             league_cur[lg] = season_slice(predictor.load_league_data(lg))
         except Exception:
