@@ -320,6 +320,81 @@ def analysis(league_code: str):
     return {"league": league_code, "season_start": str(season_start.date()), "teams": out}
 
 
+@app.get("/trends")
+def trends():
+    """Cross-league trends: for shots/corners/fouls/cards, the leading league
+    (by current-season per-game average) and that league's top 5 teams."""
+    import pandas as pd
+
+    def season_slice(d):
+        d = d.copy()
+        d['Date'] = pd.to_datetime(d['Date'])
+        dates = d['Date'].sort_values().drop_duplicates().reset_index(drop=True)
+        gaps = dates.diff()
+        bi = gaps[gaps > pd.Timedelta(days=45)].index
+        season_start = dates[bi[-1]] if len(bi) else dates.min()
+        return d[d['Date'] >= season_start]
+
+    def team_val(cur, team, stat):
+        tm = cur[(cur['HomeTeam'] == team) | (cur['AwayTeam'] == team)]
+        n = len(tm)
+        if n == 0:
+            return None, 0
+        tot = 0.0
+        for _, r in tm.iterrows():
+            home = r['HomeTeam'] == team
+            if stat == 'shots':
+                tot += (r['HS'] if home else r['AS']) if not pd.isna(r.get('HS')) else 0
+            elif stat == 'corners':
+                tot += (r['HC'] if home else r['AC']) if not pd.isna(r.get('HC')) else 0
+            elif stat == 'fouls':
+                tot += (r['HF'] if home else r['AF']) if not pd.isna(r.get('HF')) else 0
+            elif stat == 'cards':
+                hc = (r.get('HY', 0) or 0) + (r.get('HR', 0) or 0)
+                ac = (r.get('AY', 0) or 0) + (r.get('AR', 0) or 0)
+                tot += hc if home else ac
+        return tot / n, n
+
+    stats = ['shots', 'corners', 'fouls', 'cards']
+    # gather per-league data once
+    league_cur = {}
+    for lg in DATA_URLS.keys():
+        try:
+            league_cur[lg] = season_slice(predictor.load_league_data(lg))
+        except Exception:
+            continue
+
+    result = {}
+    for stat in stats:
+        best_lg, best_avg = None, -1
+        for lg, cur in league_cur.items():
+            if stat == 'shots':
+                mavg = (cur['HS'] + cur['AS']).dropna().mean()
+            elif stat == 'corners':
+                mavg = (cur['HC'] + cur['AC']).dropna().mean()
+            elif stat == 'fouls':
+                mavg = (cur['HF'] + cur['AF']).dropna().mean()
+            else:
+                mavg = (cur['HY'] + cur['AY'] + cur['HR'] + cur['AR']).dropna().mean()
+            if pd.notna(mavg) and mavg > best_avg:
+                best_avg, best_lg = mavg, lg
+        # top 5 teams in the leading league for this stat
+        cur = league_cur[best_lg]
+        teams = set(cur['HomeTeam'].dropna()) | set(cur['AwayTeam'].dropna())
+        tvals = []
+        for t in teams:
+            v, n = team_val(cur, t, stat)
+            if v is not None:
+                tvals.append({"team": t, "avg": round(v, 1), "games": n})
+        tvals.sort(key=lambda x: x['avg'], reverse=True)
+        result[stat] = {
+            "league": best_lg,
+            "league_avg": round(float(best_avg), 1),
+            "top_teams": tvals[:5],
+        }
+    return result
+
+
 @app.get("/accuracy")
 def accuracy():
     """How often the model was right on matches it never trained on."""
