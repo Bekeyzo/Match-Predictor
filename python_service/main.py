@@ -366,19 +366,27 @@ def trends():
 
     result = {}
     for stat in stats:
-        best_lg, best_avg = None, -1
+        best_lg, best_avg = None, -1.0
         for lg, cur in league_cur.items():
-            if stat == 'shots':
-                mavg = (cur['HS'] + cur['AS']).dropna().mean()
-            elif stat == 'corners':
-                mavg = (cur['HC'] + cur['AC']).dropna().mean()
-            elif stat == 'fouls':
-                mavg = (cur['HF'] + cur['AF']).dropna().mean()
-            else:
-                mavg = (cur['HY'] + cur['AY'] + cur['HR'] + cur['AR']).dropna().mean()
-            if pd.notna(mavg) and mavg > best_avg:
-                best_avg, best_lg = mavg, lg
+            if len(cur) == 0:
+                continue
+            try:
+                if stat == 'shots':
+                    mavg = (cur['HS'] + cur['AS']).dropna().mean()
+                elif stat == 'corners':
+                    mavg = (cur['HC'] + cur['AC']).dropna().mean()
+                elif stat == 'fouls':
+                    mavg = (cur['HF'] + cur['AF']).dropna().mean()
+                else:
+                    mavg = (cur['HY'] + cur['AY'] + cur['HR'] + cur['AR']).dropna().mean()
+            except Exception:
+                continue
+            if pd.notna(mavg) and float(mavg) > best_avg:
+                best_avg, best_lg = float(mavg), lg
         # top 5 teams in the leading league for this stat
+        if best_lg is None:
+            result[stat] = {"league": None, "league_avg": 0, "top_teams": []}
+            continue
         cur = league_cur[best_lg]
         teams = set(cur['HomeTeam'].dropna()) | set(cur['AwayTeam'].dropna())
         tvals = []
