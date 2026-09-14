@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"sort"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -115,20 +116,48 @@ func GetFixtures(c echo.Context) error {
 		}
 	}
 
-	// Keep only fixtures within the next 7 days (avoid showing a second matchday out)
-	cutoff := time.Now().AddDate(0, 0, 7)
+	// Show exactly ONE matchweek. Football-data gives no matchday number, so we
+	// infer the round boundary by date-clustering: keep upcoming fixtures from the
+	// earliest one forward, stopping at the first gap larger than 3 days (that gap
+	// is the break before the next matchweek). This shows one clean round no matter
+	// which day the user visits, and adapts to each league's schedule.
 	startOfToday := time.Now().Truncate(24 * time.Hour)
-	kept := make([]models.Fixture, 0, len(matches))
+
+	// parse + keep only upcoming, with their times, then sort by date
+	type dm struct {
+		m models.Fixture
+		t time.Time
+	}
+	upcoming := make([]dm, 0, len(matches))
+	unparsed := make([]models.Fixture, 0)
 	for _, m := range matches {
 		t, err := time.Parse(time.RFC3339, m.UtcDate)
 		if err != nil {
-			kept = append(kept, m) // keep if we can't parse, rather than silently drop
+			unparsed = append(unparsed, m) // keep unparseable rather than drop
 			continue
 		}
-		if !t.Before(startOfToday) && t.Before(cutoff) {
-			kept = append(kept, m)
+		if !t.Before(startOfToday) {
+			upcoming = append(upcoming, dm{m, t})
 		}
 	}
+	sort.Slice(upcoming, func(i, j int) bool { return upcoming[i].t.Before(upcoming[j].t) })
+
+	kept := make([]models.Fixture, 0, len(upcoming))
+	var prev time.Time
+	for i, d := range upcoming {
+		if i == 0 {
+			kept = append(kept, d.m)
+			prev = d.t
+			continue
+		}
+		// gap from the previous kept fixture; > 3 days => next matchweek, stop.
+		if d.t.Sub(prev) > 72*time.Hour {
+			break
+		}
+		kept = append(kept, d.m)
+		prev = d.t
+	}
+	kept = append(kept, unparsed...)
 	matches = kept
 
 	payload := map[string]interface{}{
