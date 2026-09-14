@@ -152,6 +152,11 @@ export const getH2H = (
     league_code: leagueCode,
   });
 
+export interface TrendTeam { team: string; avg: number; games: number; }
+export interface TrendStat { league: string | null; league_avg: number; top_teams: TrendTeam[]; }
+export const getTrends = (): Promise<{ data: { shots: TrendStat; corners: TrendStat; fouls: TrendStat; cards: TrendStat } }> =>
+  API.get('/trends');
+
 export interface TeamStat {
   team: string;
   games: number;
