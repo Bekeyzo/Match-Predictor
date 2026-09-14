@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 import freshness
+import predictor
 from predictor import (
     download_league_data,
     load_league_data,
@@ -358,7 +359,7 @@ def trends():
     stats = ['shots', 'corners', 'fouls', 'cards']
     # gather per-league data once
     league_cur = {}
-    for lg in model_cache.keys():
+    for lg in predictor.LEAGUE_FILES.keys():
         try:
             league_cur[lg] = season_slice(predictor.load_league_data(lg))
         except Exception:
