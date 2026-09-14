@@ -214,6 +214,14 @@ export default function HomePage() {
             </ol>
           </div>
 
+          <a href="/trends" className="side-card" style={{ display:'block', cursor:'pointer', textDecoration:'none' }}>
+            <div className="eyebrow" style={{ color:'var(--purple)' }}>Explore</div>
+            <div className="side-title" style={{ marginTop:4 }}>League Trends →</div>
+            <p className="side-note" style={{ marginBottom:0 }}>
+              Which leagues lead shots, corners, cards &amp; fouls — and the top teams in each.
+            </p>
+          </a>
+
           <div className="side-card disclaimer">
             <div className="side-title">Heads up</div>
             <p className="side-note">
