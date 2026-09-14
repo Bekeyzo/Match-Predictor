@@ -345,6 +345,7 @@ DATA_URLS = {
     "BEL2": "https://football-data.co.uk/mmz4281/{season}/B2.csv",
     "GSL":  "https://football-data.co.uk/mmz4281/{season}/G1.csv",
     "GSL2": "https://football-data.co.uk/mmz4281/{season}/G2.csv",
+    "TUR":  "https://football-data.co.uk/mmz4281/{season}/T1.csv",
 }
 
 def current_seasons(n=5):
