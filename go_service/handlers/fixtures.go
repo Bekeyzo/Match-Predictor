@@ -142,20 +142,31 @@ func GetFixtures(c echo.Context) error {
 	}
 	sort.Slice(upcoming, func(i, j int) bool { return upcoming[i].t.Before(upcoming[j].t) })
 
-	kept := make([]models.Fixture, 0, len(upcoming))
+	// Cluster the upcoming fixtures into matchweeks: a gap > 3 days starts a new
+	// cluster. Then pick the LARGEST cluster — a full round is ~10 games, while a
+	// finishing tail is only 1-3, so this skips remnants and lands on the real
+	// upcoming matchweek. Ties break toward the earliest cluster.
+	var clusters [][]models.Fixture
+	var cur []models.Fixture
 	var prev time.Time
 	for i, d := range upcoming {
-		if i == 0 {
-			kept = append(kept, d.m)
-			prev = d.t
-			continue
+		if i > 0 && d.t.Sub(prev) > 72*time.Hour {
+			clusters = append(clusters, cur)
+			cur = nil
 		}
-		// gap from the previous kept fixture; > 3 days => next matchweek, stop.
-		if d.t.Sub(prev) > 72*time.Hour {
-			break
-		}
-		kept = append(kept, d.m)
+		cur = append(cur, d.m)
 		prev = d.t
+	}
+	if len(cur) > 0 {
+		clusters = append(clusters, cur)
+	}
+	kept := make([]models.Fixture, 0)
+	best := -1
+	for _, cl := range clusters {
+		if len(cl) > best {
+			best = len(cl)
+			kept = cl
+		}
 	}
 	kept = append(kept, unparsed...)
 	matches = kept
