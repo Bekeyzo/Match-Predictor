@@ -154,7 +154,7 @@ export const getH2H = (
 
 export interface ShotMatch { league: string; home: string; away: string; date: string; prob_pct: number; }
 export interface ShotTeam { league: string; team: string; opponent: string; date: string; prob_pct: number; }
-export const getConfidentShots = (): Promise<{ data: { matches: ShotMatch[]; teams: ShotTeam[] } }> =>
+export const getConfidentShots = (): Promise<{ data: { over_goals: ShotMatch[]; btts: ShotMatch[]; over_corners: ShotMatch[]; over_shots: ShotMatch[]; wins: ShotTeam[]; team_shots: ShotTeam[] } }> =>
   API.get('/confident-shots');
 
 export interface TrendTeam { team: string; avg: number; games: number; }

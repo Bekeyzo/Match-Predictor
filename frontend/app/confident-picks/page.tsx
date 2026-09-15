@@ -8,53 +8,79 @@ function niceDate(d: string) {
   catch { return d; }
 }
 
+type Data = {
+  over_goals: ShotMatch[]; btts: ShotMatch[]; over_corners: ShotMatch[]; over_shots: ShotMatch[];
+  wins: ShotTeam[]; team_shots: ShotTeam[];
+};
+
+function MatchList({ rows, accent }: { rows: ShotMatch[]; accent: string }) {
+  return (
+    <div className="k-stats" style={{ gridTemplateColumns: '1fr' }}>
+      {rows.map((m, i) => (
+        <div className="k-stat" key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>{m.home} <span style={{ color: 'var(--ink-2)', fontWeight: 400 }}>v</span> {m.away}</div>
+            <div className="eyebrow" style={{ marginTop: 4 }}>{m.league} · {niceDate(m.date)}</div>
+          </div>
+          <div className="num" style={{ fontWeight: 700, fontSize: 24, color: accent }}>{m.prob_pct.toFixed(0)}%</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TeamList({ rows, suffix, accent }: { rows: ShotTeam[]; suffix: string; accent: string }) {
+  return (
+    <div className="k-stats" style={{ gridTemplateColumns: '1fr' }}>
+      {rows.map((t, i) => (
+        <div className="k-stat" key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>{t.team} <span style={{ color: 'var(--ink-2)', fontWeight: 400, fontSize: 14 }}>{suffix}</span></div>
+            <div className="eyebrow" style={{ marginTop: 4 }}>vs {t.opponent} · {t.league} · {niceDate(t.date)}</div>
+          </div>
+          <div className="num" style={{ fontWeight: 700, fontSize: 24, color: accent }}>{t.prob_pct.toFixed(0)}%</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ConfidentPicksPage() {
-  const [matches, setMatches] = useState<ShotMatch[] | null>(null);
-  const [teams, setTeams] = useState<ShotTeam[] | null>(null);
+  const [d, setD] = useState<Data | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    getConfidentShots()
-      .then(r => { setMatches(r.data.matches || []); setTeams(r.data.teams || []); })
-      .catch(() => setError('Could not load confident picks.'));
+    getConfidentShots().then(r => setD(r.data as Data)).catch(() => setError('Could not load confident picks.'));
   }, []);
 
   if (error) return <div className="state">{error}<br /><a href="/" className="back" style={{ marginTop: 18 }}>← Back</a></div>;
-  if (!matches || !teams) return <div className="state">Crunching every fixture across the leagues…</div>;
+  if (!d) return <div className="state">Crunching every fixture across the leagues…</div>;
 
   return (
     <div className="wrap" style={{ maxWidth: 720 }}>
       <a href="/" className="back">← Back to leagues</a>
-      <h1 className="display" style={{ fontSize: 30, margin: '12px 0 4px' }}>Shot Confident Picks</h1>
-      <p className="eyebrow" style={{ marginBottom: 8 }}>Highest shot-volume matchups this matchweek · updates hourly</p>
+      <h1 className="display" style={{ fontSize: 30, margin: '12px 0 4px' }}>Confident Picks</h1>
+      <p className="eyebrow" style={{ marginBottom: 8 }}>This matchweek&rsquo;s strongest calls across every league · updates hourly</p>
 
-      <div className="k-sh" style={{ marginTop: 26 }}>Most likely high-shot matches <span className="sub">chance of over 26.5 total shots</span></div>
-      <div className="k-stats" style={{ gridTemplateColumns: '1fr' }}>
-        {matches.map((m, i) => (
-          <div className="k-stat" key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>{m.home} <span style={{ color: 'var(--ink-2)', fontWeight: 400 }}>v</span> {m.away}</div>
-              <div className="eyebrow" style={{ marginTop: 4 }}>{m.league} · {niceDate(m.date)}</div>
-            </div>
-            <div className="num" style={{ fontWeight: 700, fontSize: 24, color: 'var(--purple)' }}>{m.prob_pct.toFixed(0)}%</div>
-          </div>
-        ))}
-      </div>
+      <div className="k-sh" style={{ marginTop: 26 }}>Most likely to win <span className="sub">team&rsquo;s chance of winning its match</span></div>
+      <TeamList rows={d.wins} suffix="to win" accent="var(--win)" />
 
-      <div className="k-sh" style={{ marginTop: 32 }}>Teams likely to rack up shots <span className="sub">chance of that team taking over 18.5 shots</span></div>
-      <div className="k-stats" style={{ gridTemplateColumns: '1fr' }}>
-        {teams.map((t, i) => (
-          <div className="k-stat" key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>{t.team} <span style={{ color: 'var(--ink-2)', fontWeight: 400, fontSize: 14 }}>to fire 18+ shots</span></div>
-              <div className="eyebrow" style={{ marginTop: 4 }}>vs {t.opponent} · {t.league} · {niceDate(t.date)}</div>
-            </div>
-            <div className="num" style={{ fontWeight: 700, fontSize: 24, color: 'var(--away)' }}>{t.prob_pct.toFixed(0)}%</div>
-          </div>
-        ))}
-      </div>
+      <div className="k-sh" style={{ marginTop: 30 }}>Over 2.5 goals <span className="sub">chance of 3+ goals</span></div>
+      <MatchList rows={d.over_goals} accent="var(--purple)" />
 
-      <p className="pred-disclaimer" style={{ marginTop: 28 }}>Shot estimates from team form (blend of shots taken and shots faced) · a guide, not a guarantee. 18.5 shots is a high bar, so team percentages read modest.</p>
+      <div className="k-sh" style={{ marginTop: 30 }}>Both teams to score <span className="sub">chance both sides find the net</span></div>
+      <MatchList rows={d.btts} accent="var(--purple)" />
+
+      <div className="k-sh" style={{ marginTop: 30 }}>Over 8.5 corners <span className="sub">chance of a corner-heavy match</span></div>
+      <MatchList rows={d.over_corners} accent="var(--purple)" />
+
+      <div className="k-sh" style={{ marginTop: 30 }}>Over 26.5 shots <span className="sub">chance of a high-shot match</span></div>
+      <MatchList rows={d.over_shots} accent="var(--purple)" />
+
+      <div className="k-sh" style={{ marginTop: 30 }}>Teams to fire 18+ shots <span className="sub">that team&rsquo;s chance of 18.5+ shots</span></div>
+      <TeamList rows={d.team_shots} suffix="to fire 18+ shots" accent="var(--away)" />
+
+      <p className="pred-disclaimer" style={{ marginTop: 28 }}>Estimates from team form · a guide, not a guarantee. Higher lines (18.5 shots) read modest by design.</p>
     </div>
   );
 }
