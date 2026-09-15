@@ -713,6 +713,8 @@ def predict_fixture(
                         + (af['shots_for'] + hf['shots_against']) / 2)
     _exp_sot_total = ((hf['sot_for'] + af['sot_against']) / 2
                       + (af['sot_for'] + hf['sot_against']) / 2)
+    _exp_corners_total = ((hf['corners_for'] + af['corners_against']) / 2
+                          + (af['corners_for'] + hf['corners_against']) / 2)
 
     def _p_over(line, lam):
         return round((1 - sum(poisson_pmf(k, lam) for k in range(int(line) + 1))) * 100, 1)
@@ -772,4 +774,6 @@ def predict_fixture(
         "prob_over_6_5_saves": _p_over(6.5, _exp_saves_total),
         "prob_home_over_18_5_shots": _p_over(18.5, _home_shots_exp),
         "prob_away_over_18_5_shots": _p_over(18.5, _away_shots_exp),
+        "prob_over_8_5_corners": _p_over(8.5, _exp_corners_total),
+        "prob_over_10_5_corners": _p_over(10.5, _exp_corners_total),
     }
