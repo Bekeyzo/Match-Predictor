@@ -10,7 +10,7 @@ function niceDate(d: string) {
 
 type Data = {
   over_goals: ShotMatch[]; btts: ShotMatch[]; over_corners: ShotMatch[]; over_shots: ShotMatch[];
-  wins: ShotTeam[]; team_shots: ShotTeam[];
+  over_fouls: ShotMatch[]; wins: ShotTeam[]; team_shots: ShotTeam[]; team_fouls: ShotTeam[];
 };
 
 function MatchList({ rows, accent }: { rows: ShotMatch[]; accent: string }) {
@@ -77,8 +77,14 @@ export default function ConfidentPicksPage() {
       <div className="k-sh" style={{ marginTop: 30 }}>Over 26.5 shots <span className="sub">chance of a high-shot match</span></div>
       <MatchList rows={d.over_shots} accent="var(--purple)" />
 
+      <div className="k-sh" style={{ marginTop: 30 }}>Over 24.5 fouls <span className="sub">chance of a foul-heavy match</span></div>
+      <MatchList rows={d.over_fouls} accent="var(--purple)" />
+
       <div className="k-sh" style={{ marginTop: 30 }}>Teams to fire 18+ shots <span className="sub">that team&rsquo;s chance of 18.5+ shots</span></div>
       <TeamList rows={d.team_shots} suffix="to fire 18+ shots" accent="var(--away)" />
+
+      <div className="k-sh" style={{ marginTop: 30 }}>Teams to commit 13+ fouls <span className="sub">that team&rsquo;s chance of 12.5+ fouls</span></div>
+      <TeamList rows={d.team_fouls} suffix="to commit 13+ fouls" accent="var(--away)" />
 
       <p className="pred-disclaimer" style={{ marginTop: 28 }}>Estimates from team form · a guide, not a guarantee. Higher lines (18.5 shots) read modest by design.</p>
     </div>
