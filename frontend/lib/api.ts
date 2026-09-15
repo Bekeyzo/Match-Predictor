@@ -154,6 +154,10 @@ export const getH2H = (
 
 export interface ShotMatch { league: string; home: string; away: string; date: string; prob_pct: number; }
 export interface ShotTeam { league: string; team: string; opponent: string; date: string; prob_pct: number; }
+export interface PickResult { league: string; home?: string; away?: string; team?: string; opponent?: string; prob_pct: number; verdict: string; actual?: string; }
+export const getPicksHistory = (): Promise<{ data: { snapshot_date: string | null; markets: Record<string, PickResult[]>; rates: Record<string, { right: number; total: number }> } }> =>
+  API.get('/picks-history');
+
 export const getConfidentShots = (): Promise<{ data: { over_goals: ShotMatch[]; btts: ShotMatch[]; over_corners: ShotMatch[]; over_shots: ShotMatch[]; over_fouls: ShotMatch[]; wins: ShotTeam[]; team_shots: ShotTeam[]; team_fouls: ShotTeam[] } }> =>
   API.get('/confident-shots');
 
