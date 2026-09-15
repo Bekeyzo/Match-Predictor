@@ -114,6 +114,38 @@ def grade_all_leagues():
             print(f"   {lg}: grade failed ({e})")
     print("✅ Scheduled grading complete")
 
+
+def snapshot_picks_job():
+    """Freeze this week's confident picks (before kickoff) for later grading."""
+    import requests as _rq
+    API = "https://api.tehuti.net"
+    print("📸 Snapshotting confident picks...")
+    try:
+        r = _rq.post(f"{API}/login", json={"email": "gfx2@example.com", "password": "testpass99"}, timeout=30)
+        token = r.json().get("token")
+        if not token:
+            print("⚠️  Snapshot skipped — login failed"); return
+        g = _rq.post(f"{API}/snapshot-picks", headers={"Authorization": f"Bearer {token}"}, timeout=120)
+        print(f"✅ Snapshot: {g.text.strip()}")
+    except Exception as e:
+        print(f"⚠️  Snapshot failed: {e}")
+
+
+def grade_picks_job():
+    """Grade any confident-pick snapshots whose matches have been played."""
+    import requests as _rq
+    API = "https://api.tehuti.net"
+    print("🏁 Grading confident picks...")
+    try:
+        r = _rq.post(f"{API}/login", json={"email": "gfx2@example.com", "password": "testpass99"}, timeout=30)
+        token = r.json().get("token")
+        if not token:
+            print("⚠️  Pick-grading skipped — login failed"); return
+        g = _rq.post(f"{API}/grade-picks", headers={"Authorization": f"Bearer {token}"}, timeout=120)
+        print(f"✅ Pick-grading: {g.text.strip()}")
+    except Exception as e:
+        print(f"⚠️  Pick-grading failed: {e}")
+
 # ─────────────────────────────────────────────
 # STARTUP AND SHUTDOWN
 # FastAPI lifespan runs code when the server starts and stops
@@ -155,6 +187,19 @@ async def lifespan(app: FastAPI):
         check_freshness_and_heal,
         trigger="interval",
         hours=3,
+    )
+    scheduler.add_job(
+        snapshot_picks_job,
+        trigger="cron",
+        day_of_week="fri",
+        hour=7,
+        minute=0,
+    )
+    scheduler.add_job(
+        grade_picks_job,
+        trigger="cron",
+        hour=7,
+        minute=0,
     )
     # date_trigger_freshness: also run once ~2 min after startup so the status
     # file exists promptly (models finish loading first; check doesn't block boot)
