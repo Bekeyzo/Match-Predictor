@@ -727,6 +727,10 @@ def predict_fixture(
     # per-team expected shots (blend) for confident-shots picks
     _home_shots_exp = (hf['shots_for'] + af['shots_against']) / 2
     _away_shots_exp = (af['shots_for'] + hf['shots_against']) / 2
+    _exp_fouls_total = ((hf['fouls_for'] + af['fouls_against']) / 2
+                        + (af['fouls_for'] + hf['fouls_against']) / 2)
+    _home_fouls_exp = (hf['fouls_for'] + af['fouls_against']) / 2
+    _away_fouls_exp = (af['fouls_for'] + hf['fouls_against']) / 2
 
     return {
         "fixture": f"{home} vs {away}",
@@ -776,4 +780,7 @@ def predict_fixture(
         "prob_away_over_18_5_shots": _p_over(18.5, _away_shots_exp),
         "prob_over_8_5_corners": _p_over(8.5, _exp_corners_total),
         "prob_over_10_5_corners": _p_over(10.5, _exp_corners_total),
+        "prob_over_24_5_fouls": _p_over(24.5, _exp_fouls_total),
+        "prob_home_over_12_5_fouls": _p_over(12.5, _home_fouls_exp),
+        "prob_away_over_12_5_fouls": _p_over(12.5, _away_fouls_exp),
     }
