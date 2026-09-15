@@ -12,12 +12,21 @@ import (
 
 // football-data.co.uk Div codes for the leagues our other sources miss.
 var footballDataCoUkDiv = map[string]string{
-	"BEL": "B1", // Belgian Pro League
-	"BL2": "D2", // 2. Bundesliga
-	"PD2": "SP2", // Spanish Segunda
-	"SB":  "I2",  // Serie B
-	"FL2": "F2",  // Ligue 2
-	"GSL": "G1",  // Greek Super League
+	"PL":   "E0",  // Premier League
+	"ELC":  "E1",  // Championship
+	"PD":   "SP1", // La Liga
+	"PD2":  "SP2", // Spanish Segunda
+	"BL1":  "D1",  // Bundesliga
+	"BL2":  "D2",  // 2. Bundesliga
+	"SA":   "I1",  // Serie A
+	"SB":   "I2",  // Serie B
+	"FL1":  "F1",  // Ligue 1
+	"FL2":  "F2",  // Ligue 2
+	"DED":  "N1",  // Eredivisie
+	"PPL":  "P1",  // Primeira Liga
+	"BEL":  "B1",  // Belgian Pro League
+	"GSL":  "G1",  // Greek Super League
+	"TUR":  "T1",  // Turkish Super Lig
 }
 
 // fetchFootballDataCoUk pulls upcoming fixtures from football-data.co.uk's
