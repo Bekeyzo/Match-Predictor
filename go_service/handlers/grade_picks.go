@@ -275,3 +275,65 @@ func gradePickMarket(market, team string, fr fullResult) (string, string) {
 	}
 	return "", ""
 }
+
+// GetPicksHistory returns the most recent snapshot that has graded picks, with
+// each pick's verdict and a per-market hit-rate. Powers the "how did last week's
+// confident picks do" view.
+func GetPicksHistory(c echo.Context) error {
+	// the latest snapshot_date that has at least one graded pick
+	var snapDate *time.Time
+	db.DB.QueryRow(
+		`SELECT MAX(snapshot_date) FROM confident_snapshots WHERE verdict IS NOT NULL`).Scan(&snapDate)
+	if snapDate == nil {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"snapshot_date": nil, "markets": map[string]interface{}{},
+		})
+	}
+	sd := snapDate.Format("2006-01-02")
+
+	rows, err := db.DB.Query(
+		`SELECT market, league, home_team, away_team, team, opponent, prob_pct, verdict, actual
+		 FROM confident_snapshots
+		 WHERE snapshot_date = $1 AND verdict IS NOT NULL
+		 ORDER BY market, prob_pct DESC`, sd)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "query failed"})
+	}
+	defer rows.Close()
+
+	type pick struct {
+		League  string  `json:"league"`
+		Home    *string `json:"home,omitempty"`
+		Away    *string `json:"away,omitempty"`
+		Team    *string `json:"team,omitempty"`
+		Opp     *string `json:"opponent,omitempty"`
+		Prob    float64 `json:"prob_pct"`
+		Verdict string  `json:"verdict"`
+		Actual  *string `json:"actual,omitempty"`
+	}
+	markets := map[string][]pick{}
+	hits := map[string][2]int{} // [right, total]
+	for rows.Next() {
+		var p pick
+		var mk string
+		rows.Scan(&mk, &p.League, &p.Home, &p.Away, &p.Team, &p.Opp, &p.Prob, &p.Verdict, &p.Actual)
+		markets[mk] = append(markets[mk], p)
+		h := hits[mk]
+		h[1]++
+		if p.Verdict == "right" {
+			h[0]++
+		}
+		hits[mk] = h
+	}
+
+	rates := map[string]map[string]int{}
+	for mk, h := range hits {
+		rates[mk] = map[string]int{"right": h[0], "total": h[1]}
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"snapshot_date": sd,
+		"markets":       markets,
+		"rates":         rates,
+	})
+}
