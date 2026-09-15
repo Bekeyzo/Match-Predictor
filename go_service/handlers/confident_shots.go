@@ -63,8 +63,8 @@ func GetConfidentShots(c echo.Context) error {
 	apiKey := c.Get("football_api_key").(string)
 	pythonURL := c.Get("python_url").(string)
 
-	var overGoals, btts, overCorners, overShots []pickMatch
-	var wins, teamShots []pickTeam
+	var overGoals, btts, overCorners, overShots, overFouls []pickMatch
+	var wins, teamShots, teamFouls []pickTeam
 
 	for _, lg := range SupportedLeagues {
 		fixtures, err := fetchFootballDataOrg(lg.Code, apiKey)
@@ -103,6 +103,9 @@ func GetConfidentShots(c echo.Context) error {
 			overShots = append(overShots, pickMatch{lg.Name, h, a, date, pr.ProbOver265Shots})
 			teamShots = append(teamShots, pickTeam{lg.Name, h, a, date, pr.ProbHomeOver185Shots})
 			teamShots = append(teamShots, pickTeam{lg.Name, a, h, date, pr.ProbAwayOver185Shots})
+			overFouls = append(overFouls, pickMatch{lg.Name, h, a, date, pr.ProbOver245Fouls})
+			teamFouls = append(teamFouls, pickTeam{lg.Name, h, a, date, pr.ProbHomeOver125Fouls})
+			teamFouls = append(teamFouls, pickTeam{lg.Name, a, h, date, pr.ProbAwayOver125Fouls})
 			// wins: whichever side has the higher win probability
 			if pr.HomeWinProbPct >= pr.AwayWinProbPct {
 				wins = append(wins, pickTeam{lg.Name, h, a, date, pr.HomeWinProbPct})
@@ -119,6 +122,8 @@ func GetConfidentShots(c echo.Context) error {
 		"over_shots":   top5Matches(overShots),
 		"wins":         top5Teams(wins),
 		"team_shots":   top5Teams(teamShots),
+		"over_fouls":   top5Matches(overFouls),
+		"team_fouls":   top5Teams(teamFouls),
 	}
 	out, _ := json.Marshal(payload)
 	db.RedisClient.Set(db.Ctx, cacheKey, out, time.Hour)
