@@ -13,14 +13,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type shotMatch struct {
-	League   string  `json:"league"`
-	Home     string  `json:"home"`
-	Away     string  `json:"away"`
-	Date     string  `json:"date"`
-	ProbPct  float64 `json:"prob_pct"`
+type pickMatch struct {
+	League  string  `json:"league"`
+	Home    string  `json:"home"`
+	Away    string  `json:"away"`
+	Date    string  `json:"date"`
+	ProbPct float64 `json:"prob_pct"`
 }
-type shotTeam struct {
+type pickTeam struct {
 	League   string  `json:"league"`
 	Team     string  `json:"team"`
 	Opponent string  `json:"opponent"`
@@ -28,9 +28,24 @@ type shotTeam struct {
 	ProbPct  float64 `json:"prob_pct"`
 }
 
-// GetConfidentShots ranks, across every league's current matchweek, the 5 matches
-// most likely to exceed 26.5 total shots and the 5 teams most likely to exceed
-// 18.5 shots. Heavy (loops all fixtures × predict), so cached 1h. Gated.
+func top5Matches(m []pickMatch) []pickMatch {
+	sort.Slice(m, func(i, j int) bool { return m[i].ProbPct > m[j].ProbPct })
+	if len(m) > 5 {
+		return m[:5]
+	}
+	return m
+}
+func top5Teams(t []pickTeam) []pickTeam {
+	sort.Slice(t, func(i, j int) bool { return t[i].ProbPct > t[j].ProbPct })
+	if len(t) > 5 {
+		return t[:5]
+	}
+	return t
+}
+
+// GetConfidentShots ranks, across every league's current matchweek, the top 5
+// matches and teams for each market (goals, BTTS, corners, shots, wins). Heavy
+// (loops all fixtures × predict), so cached 1h. Gated.
 func GetConfidentShots(c echo.Context) error {
 	var verified bool
 	db.DB.QueryRow("SELECT verified FROM users WHERE id = $1", c.Get("user_id")).Scan(&verified)
@@ -40,7 +55,7 @@ func GetConfidentShots(c echo.Context) error {
 		})
 	}
 
-	const cacheKey = "confident_shots:v1"
+	const cacheKey = "confident_picks:v2"
 	if cached, err := db.RedisClient.Get(db.Ctx, cacheKey).Result(); err == nil {
 		return c.Blob(http.StatusOK, "application/json", []byte(cached))
 	}
@@ -48,15 +63,14 @@ func GetConfidentShots(c echo.Context) error {
 	apiKey := c.Get("football_api_key").(string)
 	pythonURL := c.Get("python_url").(string)
 
-	var matches []shotMatch
-	var teams []shotTeam
+	var overGoals, btts, overCorners, overShots []pickMatch
+	var wins, teamShots []pickTeam
 
 	for _, lg := range SupportedLeagues {
 		fixtures, err := fetchFootballDataOrg(lg.Code, apiKey)
 		if err != nil || len(fixtures) == 0 {
 			continue
 		}
-		// one matchweek: earliest cluster (stop at first >3-day gap), upcoming only
 		fixtures = firstMatchweek(fixtures)
 		for _, fx := range fixtures {
 			home := fx.HomeTeam.Name
@@ -79,28 +93,33 @@ func GetConfidentShots(c echo.Context) error {
 			if derr != nil {
 				continue
 			}
-			if pr.StaleData != nil && *pr.StaleData {
+			if (pr.StaleData != nil && *pr.StaleData) || (pr.InsufficientData != nil && *pr.InsufficientData) {
 				continue
 			}
-			if pr.InsufficientData != nil && *pr.InsufficientData {
-				continue
+			h, a := pr.HomeTeam, pr.AwayTeam
+			overGoals = append(overGoals, pickMatch{lg.Name, h, a, date, pr.ProbOver25Pct})
+			btts = append(btts, pickMatch{lg.Name, h, a, date, pr.BttprobPct})
+			overCorners = append(overCorners, pickMatch{lg.Name, h, a, date, pr.ProbOver85Corners})
+			overShots = append(overShots, pickMatch{lg.Name, h, a, date, pr.ProbOver265Shots})
+			teamShots = append(teamShots, pickTeam{lg.Name, h, a, date, pr.ProbHomeOver185Shots})
+			teamShots = append(teamShots, pickTeam{lg.Name, a, h, date, pr.ProbAwayOver185Shots})
+			// wins: whichever side has the higher win probability
+			if pr.HomeWinProbPct >= pr.AwayWinProbPct {
+				wins = append(wins, pickTeam{lg.Name, h, a, date, pr.HomeWinProbPct})
+			} else {
+				wins = append(wins, pickTeam{lg.Name, a, h, date, pr.AwayWinProbPct})
 			}
-			matches = append(matches, shotMatch{lg.Name, pr.HomeTeam, pr.AwayTeam, date, pr.ProbOver265Shots})
-			teams = append(teams, shotTeam{lg.Name, pr.HomeTeam, pr.AwayTeam, date, pr.ProbHomeOver185Shots})
-			teams = append(teams, shotTeam{lg.Name, pr.AwayTeam, pr.HomeTeam, date, pr.ProbAwayOver185Shots})
 		}
 	}
 
-	sort.Slice(matches, func(i, j int) bool { return matches[i].ProbPct > matches[j].ProbPct })
-	sort.Slice(teams, func(i, j int) bool { return teams[i].ProbPct > teams[j].ProbPct })
-	if len(matches) > 5 {
-		matches = matches[:5]
+	payload := map[string]interface{}{
+		"over_goals":   top5Matches(overGoals),
+		"btts":         top5Matches(btts),
+		"over_corners": top5Matches(overCorners),
+		"over_shots":   top5Matches(overShots),
+		"wins":         top5Teams(wins),
+		"team_shots":   top5Teams(teamShots),
 	}
-	if len(teams) > 5 {
-		teams = teams[:5]
-	}
-
-	payload := map[string]interface{}{"matches": matches, "teams": teams}
 	out, _ := json.Marshal(payload)
 	db.RedisClient.Set(db.Ctx, cacheKey, out, time.Hour)
 	return c.Blob(http.StatusOK, "application/json", out)
