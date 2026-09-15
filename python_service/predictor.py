@@ -722,6 +722,10 @@ def predict_fixture(
     _away_saves = max((hf['sot_for'] - hf['gf']), 0.0)
     _exp_saves_total = _home_saves + _away_saves
 
+    # per-team expected shots (blend) for confident-shots picks
+    _home_shots_exp = (hf['shots_for'] + af['shots_against']) / 2
+    _away_shots_exp = (af['shots_for'] + hf['shots_against']) / 2
+
     return {
         "fixture": f"{home} vs {away}",
         "home_team": home,
@@ -766,4 +770,6 @@ def predict_fixture(
         "prob_over_4_5_saves": _p_over(4.5, _exp_saves_total),
         "prob_over_5_5_saves": _p_over(5.5, _exp_saves_total),
         "prob_over_6_5_saves": _p_over(6.5, _exp_saves_total),
+        "prob_home_over_18_5_shots": _p_over(18.5, _home_shots_exp),
+        "prob_away_over_18_5_shots": _p_over(18.5, _away_shots_exp),
     }
