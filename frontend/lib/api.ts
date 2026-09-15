@@ -152,6 +152,11 @@ export const getH2H = (
     league_code: leagueCode,
   });
 
+export interface ShotMatch { league: string; home: string; away: string; date: string; prob_pct: number; }
+export interface ShotTeam { league: string; team: string; opponent: string; date: string; prob_pct: number; }
+export const getConfidentShots = (): Promise<{ data: { matches: ShotMatch[]; teams: ShotTeam[] } }> =>
+  API.get('/confident-shots');
+
 export interface TrendTeam { team: string; avg: number; games: number; }
 export interface TrendStat { league: string | null; league_avg: number; top_teams: TrendTeam[]; }
 export const getTrends = (): Promise<{ data: { shots: TrendStat; corners: TrendStat; fouls: TrendStat; cards: TrendStat } }> =>

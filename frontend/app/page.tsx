@@ -214,6 +214,14 @@ export default function HomePage() {
             </ol>
           </div>
 
+          <a href="/confident-picks" className="side-card" style={{ display:'block', cursor:'pointer', textDecoration:'none' }}>
+            <div className="eyebrow" style={{ color:'var(--away)' }}>Shot picks</div>
+            <div className="side-title" style={{ marginTop:4 }}>Confident Picks →</div>
+            <p className="side-note" style={{ marginBottom:0 }}>
+              This matchweek's highest shot-volume matches &amp; teams.
+            </p>
+          </a>
+
           <a href="/trends" className="side-card" style={{ display:'block', cursor:'pointer', textDecoration:'none' }}>
             <div className="eyebrow" style={{ color:'var(--purple)' }}>Explore</div>
             <div className="side-title" style={{ marginTop:4 }}>League Trends →</div>
