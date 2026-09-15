@@ -48,6 +48,8 @@ type PredictionResult struct {
 	ProbOver45Saves        float64 `json:"prob_over_4_5_saves"`
 	ProbOver55Saves        float64 `json:"prob_over_5_5_saves"`
 	ProbOver65Saves        float64 `json:"prob_over_6_5_saves"`
+	ProbHomeOver185Shots   float64 `json:"prob_home_over_18_5_shots"`
+	ProbAwayOver185Shots   float64 `json:"prob_away_over_18_5_shots"`
 	ExpectedHomeSot        float64 `json:"expected_home_sot"`
 	ExpectedAwaySot        float64 `json:"expected_away_sot"`
 	ExpectedTotalSot       float64 `json:"expected_total_sot"`

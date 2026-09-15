@@ -246,3 +246,37 @@ func nextFixtureDate(leagueCode, apiKey string) string {
 	}
 	return earliest
 }
+
+// firstMatchweek trims a fixture list to a single upcoming matchweek: sorts
+// upcoming fixtures by date and keeps from the earliest forward, stopping at the
+// first gap > 3 days (the break before the next round). Same logic as GetFixtures'
+// inline version, extracted for reuse (e.g. confident-shots). Never hides today's
+// games; never spills into the next matchweek.
+func firstMatchweek(matches []models.Fixture) []models.Fixture {
+	startOfToday := time.Now().Truncate(24 * time.Hour)
+	type dm struct {
+		m models.Fixture
+		t time.Time
+	}
+	upcoming := make([]dm, 0, len(matches))
+	for _, m := range matches {
+		t, err := time.Parse(time.RFC3339, m.UtcDate)
+		if err != nil {
+			continue
+		}
+		if !t.Before(startOfToday) {
+			upcoming = append(upcoming, dm{m, t})
+		}
+	}
+	sort.Slice(upcoming, func(i, j int) bool { return upcoming[i].t.Before(upcoming[j].t) })
+	kept := make([]models.Fixture, 0, len(upcoming))
+	var prev time.Time
+	for i, d := range upcoming {
+		if i > 0 && d.t.Sub(prev) > 72*time.Hour {
+			break
+		}
+		kept = append(kept, d.m)
+		prev = d.t
+	}
+	return kept
+}
