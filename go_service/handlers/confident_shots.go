@@ -63,6 +63,15 @@ func GetConfidentShots(c echo.Context) error {
 	apiKey := c.Get("football_api_key").(string)
 	pythonURL := c.Get("python_url").(string)
 
+	payload := computeConfidentPicks(apiKey, pythonURL)
+	out, _ := json.Marshal(payload)
+	db.RedisClient.Set(db.Ctx, cacheKey, out, time.Hour)
+	return c.Blob(http.StatusOK, "application/json", out)
+}
+
+// computeConfidentPicks runs the full cross-league pick computation and returns
+// the 8 ranked lists. Shared by the HTTP handler and the weekly snapshot job.
+func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 	var overGoals, btts, overCorners, overShots, overFouls []pickMatch
 	var wins, teamShots, teamFouls []pickTeam
 
@@ -115,7 +124,7 @@ func GetConfidentShots(c echo.Context) error {
 		}
 	}
 
-	payload := map[string]interface{}{
+	return map[string]interface{}{
 		"over_goals":   top5Matches(overGoals),
 		"btts":         top5Matches(btts),
 		"over_corners": top5Matches(overCorners),
@@ -125,7 +134,73 @@ func GetConfidentShots(c echo.Context) error {
 		"over_fouls":   top5Matches(overFouls),
 		"team_fouls":   top5Teams(teamFouls),
 	}
-	out, _ := json.Marshal(payload)
-	db.RedisClient.Set(db.Ctx, cacheKey, out, time.Hour)
-	return c.Blob(http.StatusOK, "application/json", out)
+}
+
+// SnapshotConfidentPicks computes this week's confident picks and freezes them
+// into confident_snapshots for later grading. Idempotent per snapshot_date via
+// ON CONFLICT DO NOTHING. Triggered weekly (before matches) by the scheduler.
+func SnapshotConfidentPicks(c echo.Context) error {
+	apiKey := c.Get("football_api_key").(string)
+	pythonURL := c.Get("python_url").(string)
+	picks := computeConfidentPicks(apiKey, pythonURL)
+
+	snapDate := time.Now().Format("2006-01-02")
+	inserted := 0
+
+	writeMatch := func(market string, rows []pickMatch) {
+		for _, m := range rows {
+			_, err := db.DB.Exec(
+				`INSERT INTO confident_snapshots
+				 (snapshot_date, market, league, home_team, away_team, match_date, prob_pct)
+				 VALUES ($1,$2,$3,$4,$5,$6,$7)
+				 ON CONFLICT DO NOTHING`,
+				snapDate, market, m.League, m.Home, m.Away, m.Date, m.ProbPct)
+			if err == nil {
+				inserted++
+			}
+		}
+	}
+	writeTeam := func(market string, rows []pickTeam) {
+		for _, t := range rows {
+			_, err := db.DB.Exec(
+				`INSERT INTO confident_snapshots
+				 (snapshot_date, market, league, team, opponent, match_date, prob_pct)
+				 VALUES ($1,$2,$3,$4,$5,$6,$7)
+				 ON CONFLICT DO NOTHING`,
+				snapDate, market, t.League, t.Team, t.Opponent, t.Date, t.ProbPct)
+			if err == nil {
+				inserted++
+			}
+		}
+	}
+
+	// helper: cast the interface{} lists back to their concrete types
+	if v, ok := picks["over_goals"].([]pickMatch); ok {
+		writeMatch("over_goals", v)
+	}
+	if v, ok := picks["btts"].([]pickMatch); ok {
+		writeMatch("btts", v)
+	}
+	if v, ok := picks["over_corners"].([]pickMatch); ok {
+		writeMatch("over_corners", v)
+	}
+	if v, ok := picks["over_shots"].([]pickMatch); ok {
+		writeMatch("over_shots", v)
+	}
+	if v, ok := picks["over_fouls"].([]pickMatch); ok {
+		writeMatch("over_fouls", v)
+	}
+	if v, ok := picks["wins"].([]pickTeam); ok {
+		writeTeam("wins", v)
+	}
+	if v, ok := picks["team_shots"].([]pickTeam); ok {
+		writeTeam("team_shots", v)
+	}
+	if v, ok := picks["team_fouls"].([]pickTeam); ok {
+		writeTeam("team_fouls", v)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"snapshot_date": snapDate, "inserted": inserted,
+	})
 }
