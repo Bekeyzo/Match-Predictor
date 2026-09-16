@@ -75,8 +75,9 @@ func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 	var overGoals, btts, overCorners, overShots, overFouls []pickMatch
 	var wins, teamShots, teamFouls []pickTeam
 
+	pacedMiss := false
 	for _, lg := range SupportedLeagues {
-		fixtures, err := fetchFootballDataOrg(lg.Code, apiKey)
+		fixtures, err := getConfidentFixtures(lg.Code, apiKey, &pacedMiss)
 		if err != nil || len(fixtures) == 0 {
 			continue
 		}
@@ -203,4 +204,27 @@ func SnapshotConfidentPicks(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"snapshot_date": snapDate, "inserted": inserted,
 	})
+}
+
+// getConfidentFixtures reads a league's fixtures from the same Redis cache the
+// /fixtures endpoint populates (key "fixtures:<code>"), avoiding a fresh API call.
+// On a cache miss it fetches from football-data.org, but PACES misses (6s apart)
+// so the rapid all-league loop never trips football-data.org's ~10 req/min limit
+// (which was silently dropping late-order leagues like DED/PPL from the picks).
+func getConfidentFixtures(code, apiKey string, pacedMiss *bool) ([]models.Fixture, error) {
+	// try the cached /fixtures payload first
+	if cached, err := db.RedisClient.Get(db.Ctx, "fixtures:"+code).Result(); err == nil {
+		var payload struct {
+			Fixtures []models.Fixture `json:"fixtures"`
+		}
+		if json.Unmarshal([]byte(cached), &payload) == nil && len(payload.Fixtures) > 0 {
+			return payload.Fixtures, nil
+		}
+	}
+	// cache miss: pace to respect the rate limit, then fetch
+	if *pacedMiss {
+		time.Sleep(6 * time.Second)
+	}
+	*pacedMiss = true
+	return fetchFootballDataOrg(code, apiKey)
 }
