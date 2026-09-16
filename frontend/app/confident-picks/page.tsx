@@ -9,6 +9,7 @@ function niceDate(d: string) {
 }
 
 type Data = {
+  banker: { market: string; league: string; label: string; detail: string; date: string; prob_pct: number }[];
   over_goals: ShotMatch[]; btts: ShotMatch[]; over_corners: ShotMatch[]; over_shots: ShotMatch[];
   over_fouls: ShotMatch[]; wins: ShotTeam[]; team_shots: ShotTeam[]; team_fouls: ShotTeam[];
 };
@@ -70,6 +71,19 @@ export default function ConfidentPicksPage() {
       <a href="/" className="back">← Back to leagues</a>
       <h1 className="display" style={{ fontSize: 30, margin: '12px 0 4px' }}>Confident Picks</h1>
       <p className="eyebrow" style={{ marginBottom: 8 }}>This matchweek&rsquo;s strongest calls across every league · updates hourly</p>
+
+      <div className="k-sh" style={{ marginTop: 26 }}>🏦 Banker <span className="sub">the 6 safest calls across all markets</span></div>
+      <div className="k-stats" style={{ gridTemplateColumns: '1fr' }}>
+        {d.banker.map((b, i) => (
+          <div className="k-stat" key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderColor: 'var(--purple)' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{b.label}</div>
+              <div className="eyebrow" style={{ marginTop: 4 }}>{b.detail} · {b.league}</div>
+            </div>
+            <div className="num" style={{ fontWeight: 700, fontSize: 26, color: 'var(--win)' }}>{b.prob_pct.toFixed(0)}%</div>
+          </div>
+        ))}
+      </div>
 
       <div className="k-sh" style={{ marginTop: 26 }}>Most likely to win <span className="sub">team&rsquo;s chance of winning its match</span></div>
       <TeamList rows={d.wins} suffix="to win" accent="var(--win)" />
