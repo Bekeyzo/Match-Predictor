@@ -28,6 +28,15 @@ type pickTeam struct {
 	ProbPct  float64 `json:"prob_pct"`
 }
 
+type bankerPick struct {
+	Market  string  `json:"market"`
+	League  string  `json:"league"`
+	Label   string  `json:"label"`
+	Detail  string  `json:"detail"`
+	Date    string  `json:"date"`
+	ProbPct float64 `json:"prob_pct"`
+}
+
 func top5Matches(m []pickMatch) []pickMatch {
 	sort.Slice(m, func(i, j int) bool { return m[i].ProbPct > m[j].ProbPct })
 	if len(m) > 5 {
@@ -125,7 +134,39 @@ func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 		}
 	}
 
+	// BANKER: the 6 highest-probability picks across ALL markets pooled together.
+	var banker []bankerPick
+	matchMarkets := map[string][]pickMatch{
+		"Over 2.5 goals": overGoals, "Both teams to score": btts,
+		"Over 8.5 corners": overCorners, "Over 26.5 shots": overShots,
+		"Over 24.5 fouls": overFouls,
+	}
+	for label, rows := range matchMarkets {
+		for _, m := range rows {
+			banker = append(banker, bankerPick{
+				Market: label, League: m.League, Label: label,
+				Detail: m.Home + " v " + m.Away, Date: m.Date, ProbPct: m.ProbPct,
+			})
+		}
+	}
+	teamMarkets := map[string][]pickTeam{
+		"To win": wins, "18+ shots": teamShots, "13+ fouls": teamFouls,
+	}
+	for label, rows := range teamMarkets {
+		for _, t := range rows {
+			banker = append(banker, bankerPick{
+				Market: label, League: t.League, Label: t.Team + " " + label,
+				Detail: "vs " + t.Opponent, Date: t.Date, ProbPct: t.ProbPct,
+			})
+		}
+	}
+	sort.Slice(banker, func(i, j int) bool { return banker[i].ProbPct > banker[j].ProbPct })
+	if len(banker) > 6 {
+		banker = banker[:6]
+	}
+
 	return map[string]interface{}{
+		"banker":       banker,
 		"over_goals":   top5Matches(overGoals),
 		"btts":         top5Matches(btts),
 		"over_corners": top5Matches(overCorners),
