@@ -188,11 +188,22 @@ async def lifespan(app: FastAPI):
         trigger="interval",
         hours=3,
     )
+    # Snapshot twice so late-publishing leagues (Greece, Belgium, 2nd divisions —
+    # whose fixtures only appear Thu/Fri) get captured before kickoff too. Friday
+    # grabs the early leagues; Saturday fills in the rest. ON CONFLICT DO NOTHING
+    # means the Saturday run only ADDS newly-available picks, never duplicates.
     scheduler.add_job(
         snapshot_picks_job,
         trigger="cron",
         day_of_week="fri",
-        hour=7,
+        hour=6,
+        minute=0,
+    )
+    scheduler.add_job(
+        snapshot_picks_job,
+        trigger="cron",
+        day_of_week="sat",
+        hour=8,
         minute=0,
     )
     scheduler.add_job(
