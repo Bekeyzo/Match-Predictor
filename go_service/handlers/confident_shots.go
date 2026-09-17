@@ -262,10 +262,20 @@ func getConfidentFixtures(code, apiKey string, pacedMiss *bool) ([]models.Fixtur
 			return payload.Fixtures, nil
 		}
 	}
-	// cache miss: pace to respect the rate limit, then fetch
+	// cache miss: always pace before hitting football-data.org so a burst of
+	// misses never trips its ~10 req/min limit (which was randomly dropping
+	// whichever leagues happened to fetch last). 7s between fetches = ~8/min.
 	if *pacedMiss {
-		time.Sleep(6 * time.Second)
+		time.Sleep(7 * time.Second)
 	}
 	*pacedMiss = true
-	return fetchFootballDataOrg(code, apiKey)
+	fx, err := fetchFootballDataOrg(code, apiKey)
+	if err == nil && len(fx) > 0 {
+		// warm the shared fixtures cache so the next compute (and the /fixtures
+		// endpoint) reuse it instead of re-fetching.
+		if b, mErr := json.Marshal(map[string]interface{}{"fixtures": fx}); mErr == nil {
+			db.RedisClient.Set(db.Ctx, "fixtures:"+code, b, 20*time.Minute)
+		}
+	}
+	return fx, err
 }
