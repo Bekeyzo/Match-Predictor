@@ -74,7 +74,7 @@ export default function ConfidentPicksPage() {
 
       <div className="k-sh" style={{ marginTop: 26 }}>🏦 Banker <span className="sub">the 6 safest calls across all markets</span></div>
       <div className="k-stats" style={{ gridTemplateColumns: '1fr' }}>
-        {d.banker.map((b, i) => (
+        {(d.banker || []).map((b, i) => (
           <div className="k-stat" key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderColor: 'var(--purple)' }}>
             <div>
               <div style={{ fontWeight: 700, fontSize: 16 }}>{b.label}</div>
