@@ -722,6 +722,14 @@ def predict_fixture(
     # ---- keeper saves (derived: SoT faced minus goals conceded) ----
     _home_saves = max((af['sot_for'] - af['gf']), 0.0)
     _away_saves = max((hf['sot_for'] - hf['gf']), 0.0)
+
+    # per-team expected SoT (blend) for confident-pick "5+ SoT" market
+    _home_sot_exp = (hf['sot_for'] + af['sot_against']) / 2
+    _away_sot_exp = (af['sot_for'] + hf['sot_against']) / 2
+    # keeper expected saves = the SoT they FACE (opponent's expected SoT) minus
+    # goals they concede. Home keeper faces the away attack, and vice versa.
+    _home_keeper_saves = max(_away_sot_exp - af.get('gf', 0), 0.0)
+    _away_keeper_saves = max(_home_sot_exp - hf.get('gf', 0), 0.0)
     _exp_saves_total = _home_saves + _away_saves
 
     # per-team expected shots (blend) for confident-shots picks
@@ -783,4 +791,8 @@ def predict_fixture(
         "prob_over_24_5_fouls": _p_over(24.5, _exp_fouls_total),
         "prob_home_over_12_5_fouls": _p_over(12.5, _home_fouls_exp),
         "prob_away_over_12_5_fouls": _p_over(12.5, _away_fouls_exp),
+        "prob_home_over_4_5_sot": _p_over(4.5, _home_sot_exp),
+        "prob_away_over_4_5_sot": _p_over(4.5, _away_sot_exp),
+        "prob_home_keeper_over_3_5_saves": _p_over(3.5, _home_keeper_saves),
+        "prob_away_keeper_over_3_5_saves": _p_over(3.5, _away_keeper_saves),
     }
