@@ -11,8 +11,9 @@ const LEAGUE_NAMES: Record<string, string> = {
   GSL:'Super League Greece', GSL2:'Super League 2', TUR:'Süper Lig',
 };
 
-const STAT_META: { key: 'shots'|'corners'|'fouls'|'cards'; label: string; sub: string; unit: string }[] = [
+const STAT_META: { key: 'shots'|'sot'|'corners'|'fouls'|'cards'; label: string; sub: string; unit: string }[] = [
   { key:'shots',   label:'Most shots',   sub:'per game',  unit:'shots' },
+  { key:'sot',     label:'Most shots on target', sub:'per game', unit:'on target' },
   { key:'corners', label:'Most corners', sub:'per game',  unit:'corners' },
   { key:'fouls',   label:'Most fouls',   sub:'per game',  unit:'fouls' },
   { key:'cards',   label:'Most cards',   sub:'per game',  unit:'cards' },
