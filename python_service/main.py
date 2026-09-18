@@ -131,6 +131,22 @@ def snapshot_picks_job():
         print(f"⚠️  Snapshot failed: {e}")
 
 
+def compute_confident_job():
+    """Recompute + cache the confident picks in the background (the ~50s paced
+    compute), so the user-facing page only ever reads the cache instantly."""
+    import requests as _rq
+    API = "https://api.tehuti.net"
+    try:
+        r = _rq.post(f"{API}/login", json={"email": "gfx2@example.com", "password": "testpass99"}, timeout=30)
+        token = r.json().get("token")
+        if not token:
+            print("⚠️  Confident compute skipped — login failed"); return
+        g = _rq.post(f"{API}/confident-shots/compute", headers={"Authorization": f"Bearer {token}"}, timeout=180)
+        print(f"✅ Confident picks recomputed: {g.text.strip()}")
+    except Exception as e:
+        print(f"⚠️  Confident compute failed: {e}")
+
+
 def grade_picks_job():
     """Grade any confident-pick snapshots whose matches have been played."""
     import requests as _rq
@@ -211,6 +227,17 @@ async def lifespan(app: FastAPI):
         trigger="cron",
         hour=7,
         minute=0,
+    )
+    scheduler.add_job(
+        compute_confident_job,
+        trigger="interval",
+        minutes=30,
+    )
+    from datetime import timedelta as _td2
+    scheduler.add_job(
+        compute_confident_job,
+        trigger="date",
+        run_date=datetime.now() + _td2(minutes=3),
     )
     # date_trigger_freshness: also run once ~2 min after startup so the status
     # file exists promptly (models finish loading first; check doesn't block boot)

@@ -104,6 +104,7 @@ func main() {
 	e.GET("/analysis/:league", middleware.AuthMiddleware(handlers.GetAnalysis))
 	e.GET("/trends", middleware.AuthMiddleware(handlers.GetTrends))
 	e.GET("/confident-shots", middleware.AuthMiddleware(handlers.GetConfidentShots))
+	e.POST("/confident-shots/compute", middleware.AuthMiddleware(handlers.ComputeConfidentShots))
 	e.POST("/snapshot-picks", middleware.AuthMiddleware(handlers.SnapshotConfidentPicks))
 	e.POST("/grade-picks", middleware.AuthMiddleware(handlers.GradeConfidentPicks))
 	e.GET("/picks-history", middleware.AuthMiddleware(handlers.GetPicksHistory))

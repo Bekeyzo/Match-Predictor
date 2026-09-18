@@ -68,14 +68,20 @@ func GetConfidentShots(c echo.Context) error {
 	if cached, err := db.RedisClient.Get(db.Ctx, cacheKey).Result(); err == nil {
 		return c.Blob(http.StatusOK, "application/json", []byte(cached))
 	}
+	// No cache yet: do NOT run the slow (~50s) compute in the user's request.
+	// Return an honest "computing" state; the scheduled job populates the cache.
+	return c.JSON(http.StatusOK, map[string]interface{}{"computing": true})
+}
 
+// ComputeConfidentShots runs the heavy paced compute and caches it. Called ONLY
+// by the scheduler (never in a user request), so the page stays instant.
+func ComputeConfidentShots(c echo.Context) error {
 	apiKey := c.Get("football_api_key").(string)
 	pythonURL := c.Get("python_url").(string)
-
 	payload := computeConfidentPicks(apiKey, pythonURL)
 	out, _ := json.Marshal(payload)
-	db.RedisClient.Set(db.Ctx, cacheKey, out, time.Hour)
-	return c.Blob(http.StatusOK, "application/json", out)
+	db.RedisClient.Set(db.Ctx, "confident_picks:v2", out, 90*time.Minute)
+	return c.JSON(http.StatusOK, map[string]interface{}{"cached": true})
 }
 
 // computeConfidentPicks runs the full cross-league pick computation and returns
