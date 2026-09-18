@@ -402,6 +402,8 @@ def trends():
             home = r['HomeTeam'] == team
             if stat == 'shots':
                 tot += (r['HS'] if home else r['AS']) if not pd.isna(r.get('HS')) else 0
+            elif stat == 'sot':
+                tot += (r['HST'] if home else r['AST']) if not pd.isna(r.get('HST')) else 0
             elif stat == 'corners':
                 tot += (r['HC'] if home else r['AC']) if not pd.isna(r.get('HC')) else 0
             elif stat == 'fouls':
@@ -412,7 +414,7 @@ def trends():
                 tot += hc if home else ac
         return tot / n, n
 
-    stats = ['shots', 'corners', 'fouls', 'cards']
+    stats = ['shots', 'sot', 'corners', 'fouls', 'cards']
     # gather per-league data once
     league_cur = {}
     for lg in predictor.LEAGUE_FILES.keys():
@@ -432,6 +434,8 @@ def trends():
                     mavg = (cur['HS'] + cur['AS']).dropna().mean()
                 elif stat == 'corners':
                     mavg = (cur['HC'] + cur['AC']).dropna().mean()
+                elif stat == 'sot':
+                    mavg = (cur['HST'] + cur['AST']).dropna().mean()
                 elif stat == 'fouls':
                     mavg = (cur['HF'] + cur['AF']).dropna().mean()
                 else:
