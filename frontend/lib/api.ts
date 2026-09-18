@@ -159,7 +159,7 @@ export interface PickResult { league: string; home?: string; away?: string; team
 export const getPicksHistory = (): Promise<{ data: { snapshot_date: string | null; markets: Record<string, PickResult[]>; rates: Record<string, { right: number; total: number }> } }> =>
   API.get('/picks-history');
 
-export const getConfidentShots = (): Promise<{ data: { banker: BankerPick[]; over_goals: ShotMatch[]; btts: ShotMatch[]; over_corners: ShotMatch[]; over_shots: ShotMatch[]; over_fouls: ShotMatch[]; wins: ShotTeam[]; team_shots: ShotTeam[]; team_fouls: ShotTeam[] } }> =>
+export const getConfidentShots = (): Promise<{ data: { banker: BankerPick[]; over_goals: ShotMatch[]; btts: ShotMatch[]; over_corners: ShotMatch[]; over_shots: ShotMatch[]; over_fouls: ShotMatch[]; wins: ShotTeam[]; team_shots: ShotTeam[]; team_fouls: ShotTeam[]; team_sot: ShotTeam[]; keeper_saves: ShotTeam[] } }> =>
   API.get('/confident-shots');
 
 export interface TrendTeam { team: string; avg: number; games: number; }

@@ -11,7 +11,7 @@ function niceDate(d: string) {
 type Data = {
   banker: { market: string; league: string; label: string; detail: string; date: string; prob_pct: number }[];
   over_goals: ShotMatch[]; btts: ShotMatch[]; over_corners: ShotMatch[]; over_shots: ShotMatch[];
-  over_fouls: ShotMatch[]; wins: ShotTeam[]; team_shots: ShotTeam[]; team_fouls: ShotTeam[];
+  over_fouls: ShotMatch[]; wins: ShotTeam[]; team_shots: ShotTeam[]; team_fouls: ShotTeam[]; team_sot: ShotTeam[]; keeper_saves: ShotTeam[];
 };
 
 function MatchList({ rows, accent }: { rows: ShotMatch[]; accent: string }) {
@@ -105,6 +105,12 @@ export default function ConfidentPicksPage() {
 
       <div className="k-sh" style={{ marginTop: 30 }}>Teams to fire 18+ shots <span className="sub">that team&rsquo;s chance of 18.5+ shots</span></div>
       <TeamList rows={d.team_shots} suffix="to fire 18+ shots" accent="var(--away)" />
+
+      <div className="k-sh" style={{ marginTop: 30 }}>Teams to fire 5+ on target <span className="sub">that team&rsquo;s chance of 5+ shots on target</span></div>
+      <TeamList rows={d.team_sot} suffix="5+ on target" accent="var(--away)" />
+
+      <div className="k-sh" style={{ marginTop: 30 }}>Keepers to make 4+ saves <span className="sub">that keeper&rsquo;s chance vs the attack they face</span></div>
+      <TeamList rows={d.keeper_saves} suffix="keeper 4+ saves" accent="var(--win)" />
 
       <div className="k-sh" style={{ marginTop: 30 }}>Teams to commit 13+ fouls <span className="sub">that team&rsquo;s chance of 12.5+ fouls</span></div>
       <TeamList rows={d.team_fouls} suffix="to commit 13+ fouls" accent="var(--away)" />
