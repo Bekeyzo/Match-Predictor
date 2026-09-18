@@ -82,7 +82,7 @@ func GetConfidentShots(c echo.Context) error {
 // the 8 ranked lists. Shared by the HTTP handler and the weekly snapshot job.
 func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 	var overGoals, btts, overCorners, overShots, overFouls []pickMatch
-	var wins, teamShots, teamFouls []pickTeam
+	var wins, teamShots, teamFouls, teamSot, keeperSaves []pickTeam
 
 	pacedMiss := false
 	for _, lg := range SupportedLeagues {
@@ -125,6 +125,11 @@ func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 			overFouls = append(overFouls, pickMatch{lg.Name, h, a, date, pr.ProbOver245Fouls})
 			teamFouls = append(teamFouls, pickTeam{lg.Name, h, a, date, pr.ProbHomeOver125Fouls})
 			teamFouls = append(teamFouls, pickTeam{lg.Name, a, h, date, pr.ProbAwayOver125Fouls})
+			teamSot = append(teamSot, pickTeam{lg.Name, h, a, date, pr.ProbHomeOver45Sot})
+			teamSot = append(teamSot, pickTeam{lg.Name, a, h, date, pr.ProbAwayOver45Sot})
+			// keeper saves: the keeper's TEAM is named; they face the opponent's attack
+			keeperSaves = append(keeperSaves, pickTeam{lg.Name, h, a, date, pr.ProbHomeKeeperOver35Saves})
+			keeperSaves = append(keeperSaves, pickTeam{lg.Name, a, h, date, pr.ProbAwayKeeperOver35Saves})
 			// wins: whichever side has the higher win probability
 			if pr.HomeWinProbPct >= pr.AwayWinProbPct {
 				wins = append(wins, pickTeam{lg.Name, h, a, date, pr.HomeWinProbPct})
@@ -175,6 +180,8 @@ func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 		"team_shots":   top5Teams(teamShots),
 		"over_fouls":   top5Matches(overFouls),
 		"team_fouls":   top5Teams(teamFouls),
+		"team_sot":     top5Teams(teamSot),
+		"keeper_saves":  top5Teams(keeperSaves),
 	}
 }
 
