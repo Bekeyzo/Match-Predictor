@@ -164,6 +164,11 @@ export const getConfidentShots = (): Promise<{ data: { banker: BankerPick[]; ove
 
 export interface TrendTeam { team: string; avg: number; games: number; }
 export interface TrendStat { league: string | null; league_avg: number; top_teams: TrendTeam[]; }
+export interface LeagueMarket { market: string; hit_rate: number; }
+export interface LeaguePatterns { league: string; season_start?: string; games: number; markets: LeagueMarket[]; }
+export const getLeaguePatterns = (code: string): Promise<{ data: LeaguePatterns }> =>
+  API.get(`/league-patterns/${code}`);
+
 export const getTrends = (): Promise<{ data: { shots: TrendStat; corners: TrendStat; fouls: TrendStat; cards: TrendStat } }> =>
   API.get('/trends');
 

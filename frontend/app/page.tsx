@@ -222,6 +222,8 @@ export default function HomePage() {
             </p>
           </a>
 
+          <a href="/league-patterns" className="side-card" style={{ display:'block', cursor:'pointer', textDecoration:'none' }}><div className="eyebrow" style={{ color:'var(--purple)' }}>Patterns</div><div className="side-title" style={{ marginTop:4 }}>League Patterns →</div><p className="side-note" style={{ marginBottom:0 }}>What each league reliably does this season.</p></a>
+
           <a href="/trends" className="side-card" style={{ display:'block', cursor:'pointer', textDecoration:'none' }}>
             <div className="eyebrow" style={{ color:'var(--purple)' }}>Explore</div>
             <div className="side-title" style={{ marginTop:4 }}>League Trends →</div>
