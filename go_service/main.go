@@ -103,6 +103,7 @@ func main() {
 	e.POST("/h2h", middleware.AuthMiddleware(handlers.GetH2H))
 	e.GET("/analysis/:league", middleware.AuthMiddleware(handlers.GetAnalysis))
 	e.GET("/trends", middleware.AuthMiddleware(handlers.GetTrends))
+	e.GET("/league-patterns/:league", middleware.AuthMiddleware(handlers.GetLeaguePatterns))
 	e.GET("/confident-shots", middleware.AuthMiddleware(handlers.GetConfidentShots))
 	e.POST("/confident-shots/compute", middleware.AuthMiddleware(handlers.ComputeConfidentShots))
 	e.POST("/snapshot-picks", middleware.AuthMiddleware(handlers.SnapshotConfidentPicks))
