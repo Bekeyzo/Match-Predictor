@@ -404,6 +404,62 @@ def analysis(league_code: str):
     return {"league": league_code, "season_start": str(season_start.date()), "teams": out}
 
 
+@app.get("/league-patterns/{league_code}")
+def league_patterns(league_code: str):
+    """For a league, the season hit-rate of each market from REAL results — the
+    league's most-reliable options, ranked, with games-played as evidence."""
+    import pandas as pd
+    try:
+        d = predictor.load_league_data(league_code).copy()
+    except Exception:
+        return {"league": league_code, "games": 0, "markets": []}
+    d["Date"] = pd.to_datetime(d["Date"])
+    dates = d["Date"].sort_values().drop_duplicates().reset_index(drop=True)
+    gaps = dates.diff()
+    bi = gaps[gaps > pd.Timedelta(days=45)].index
+    season_start = dates[bi[-1]] if len(bi) else dates.min()
+    cur = d[d["Date"] >= season_start]
+    n = len(cur)
+    if n < 3:
+        return {"league": league_code, "games": n, "markets": []}
+
+    def has(*cols):
+        return all(c in cur.columns for c in cols) and not cur[list(cols)].isna().all().any()
+
+    markets = []
+    if has("FTHG", "FTAG"):
+        g = cur["FTHG"] + cur["FTAG"]
+        markets.append(("Over 1.5 goals", float((g > 1.5).mean())))
+        markets.append(("Over 2.5 goals", float((g > 2.5).mean())))
+        markets.append(("Over 3.5 goals", float((g > 3.5).mean())))
+        markets.append(("Both teams to score", float(((cur["FTHG"] > 0) & (cur["FTAG"] > 0)).mean())))
+    if has("HC", "AC"):
+        c = cur["HC"] + cur["AC"]
+        markets.append(("Over 8.5 corners", float((c > 8.5).mean())))
+        markets.append(("Over 10.5 corners", float((c > 10.5).mean())))
+    if has("HS", "AS"):
+        markets.append(("Over 26.5 shots", float(((cur["HS"] + cur["AS"]) > 26.5).mean())))
+    if has("HST", "AST"):
+        markets.append(("Over 8.5 shots on target", float(((cur["HST"] + cur["AST"]) > 8.5).mean())))
+    if has("HF", "AF"):
+        markets.append(("Over 24.5 fouls", float(((cur["HF"] + cur["AF"]) > 24.5).mean())))
+    if has("HY", "AY"):
+        cards = cur["HY"] + cur["AY"] + cur.get("HR", 0).fillna(0) + cur.get("AR", 0).fillna(0)
+        markets.append(("Over 3.5 cards", float((cards > 3.5).mean())))
+        markets.append(("Over 4.5 cards", float((cards > 4.5).mean())))
+
+    ranked = sorted(
+        [{"market": m, "hit_rate": round(r * 100, 1)} for m, r in markets],
+        key=lambda x: x["hit_rate"], reverse=True,
+    )
+    return {
+        "league": league_code,
+        "season_start": str(season_start.date()),
+        "games": n,
+        "markets": ranked,
+    }
+
+
 @app.get("/trends")
 def trends():
     """Cross-league trends: for shots/corners/fouls/cards, the leading league
