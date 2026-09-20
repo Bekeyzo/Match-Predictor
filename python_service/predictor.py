@@ -647,6 +647,40 @@ def get_h2h_at_venue(home_side, away_side, all_data, name_index, limit=5):
         })
     return out
 
+def team_strengths(all_data, target_date):
+    """Attack/defense ratings per team from the current season, relative to the
+    league average (1.0 = average). Regressed toward 1.0 for small samples."""
+    d = all_data.copy()
+    d["Date"] = pd.to_datetime(d["Date"])
+    dates = d["Date"].sort_values().drop_duplicates().reset_index(drop=True)
+    gaps = dates.diff()
+    bi = gaps[gaps > pd.Timedelta(days=45)].index
+    season_start = dates[bi[-1]] if len(bi) else dates.min()
+    cur = d[(d["Date"] >= season_start) & (d["Date"] < pd.to_datetime(target_date))]
+    if len(cur) < 5:
+        return None, None
+    lg_home = cur["FTHG"].mean()
+    lg_away = cur["FTAG"].mean()
+    lg_avg = (lg_home + lg_away) / 2
+    if not lg_avg or lg_avg <= 0:
+        return None, None
+    teams = set(cur["HomeTeam"].dropna()) | set(cur["AwayTeam"].dropna())
+    strengths = {}
+    for t in teams:
+        h = cur[cur["HomeTeam"] == t]
+        a = cur[cur["AwayTeam"] == t]
+        gp = len(h) + len(a)
+        if gp == 0:
+            continue
+        scored = (h["FTHG"].sum() + a["FTAG"].sum()) / gp
+        conceded = (h["FTAG"].sum() + a["FTHG"].sum()) / gp
+        w = gp / (gp + 6)
+        atk = w * (scored / lg_avg) + (1 - w) * 1.0
+        dfn = w * (conceded / lg_avg) + (1 - w) * 1.0
+        strengths[t] = {"atk": float(atk), "def": float(dfn), "gp": gp}
+    return strengths, (float(lg_home), float(lg_away))
+
+
 def predict_fixture(
     home_team: str,
     away_team: str,
