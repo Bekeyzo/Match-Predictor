@@ -681,6 +681,39 @@ def team_strengths(all_data, target_date):
     return strengths, (float(lg_home), float(lg_away))
 
 
+def shot_strengths(all_data, target_date):
+    """Shot attack/defense ratings per team from the current season, relative to
+    the league shot average (1.0 = average). atk>1 takes more shots than average;
+    def<1 concedes fewer (a strong shot-suppressing side). Regressed for small
+    samples. Returns ({team:{atk,def}}, lg_shot_avg) or (None, None)."""
+    d = all_data.copy()
+    d["Date"] = pd.to_datetime(d["Date"])
+    dates = d["Date"].sort_values().drop_duplicates().reset_index(drop=True)
+    gaps = dates.diff()
+    bi = gaps[gaps > pd.Timedelta(days=45)].index
+    season_start = dates[bi[-1]] if len(bi) else dates.min()
+    cur = d[(d["Date"] >= season_start) & (d["Date"] < pd.to_datetime(target_date))]
+    if len(cur) < 5 or "HS" not in cur.columns or cur["HS"].isna().all():
+        return None, None
+    lg = ((cur["HS"] + cur["AS"]).mean()) / 2
+    if not lg or lg <= 0:
+        return None, None
+    teams = set(cur["HomeTeam"].dropna()) | set(cur["AwayTeam"].dropna())
+    out = {}
+    for t in teams:
+        h = cur[cur["HomeTeam"] == t]
+        a = cur[cur["AwayTeam"] == t]
+        gp = len(h) + len(a)
+        if gp == 0:
+            continue
+        took = (h["HS"].sum() + a["AS"].sum()) / gp
+        faced = (h["AS"].sum() + a["HS"].sum()) / gp
+        w = gp / (gp + 6)
+        out[t] = {"atk": w * (took / lg) + (1 - w) * 1.0,
+                  "def": w * (faced / lg) + (1 - w) * 1.0}
+    return out, float(lg)
+
+
 def predict_fixture(
     home_team: str,
     away_team: str,
@@ -759,6 +792,7 @@ def predict_fixture(
     most_likely = max(probs.items(), key=lambda kv: kv[1])[0]
 
     # ---- shot / SoT over-under markets (defensive blend + Poisson) ----
+    # (recomputed below from the strength-adjusted per-team expected shots)
     _exp_shots_total = ((hf['shots_for'] + af['shots_against']) / 2
                         + (af['shots_for'] + hf['shots_against']) / 2)
     _exp_sot_total = ((hf['sot_for'] + af['sot_against']) / 2
@@ -783,8 +817,21 @@ def predict_fixture(
     _exp_saves_total = _home_saves + _away_saves
 
     # per-team expected shots (blend) for confident-shots picks
-    _home_shots_exp = (hf['shots_for'] + af['shots_against']) / 2
-    _away_shots_exp = (af['shots_for'] + hf['shots_against']) / 2
+    # Strength-adjusted expected shots: matchup-aware (opponent shot-defense
+    # suppresses a team below its raw average), 70/30 strength/form blend, with
+    # fallback to the flat blend if shot-strengths can't be computed.
+    _sf_home = (hf['shots_for'] + af['shots_against']) / 2
+    _sf_away = (af['shots_for'] + hf['shots_against']) / 2
+    _sst, _slg = shot_strengths(all_data, target_date)
+    if _sst and home in _sst and away in _sst and _slg:
+        _sh = _slg * _sst[home]['atk'] * _sst[away]['def']
+        _sa = _slg * _sst[away]['atk'] * _sst[home]['def']
+        _home_shots_exp = 0.7 * _sh + 0.3 * _sf_home
+        _away_shots_exp = 0.7 * _sa + 0.3 * _sf_away
+    else:
+        _home_shots_exp = _sf_home
+        _away_shots_exp = _sf_away
+    _exp_shots_total = _home_shots_exp + _away_shots_exp
     _exp_fouls_total = ((hf['fouls_for'] + af['fouls_against']) / 2
                         + (af['fouls_for'] + hf['fouls_against']) / 2)
     _home_fouls_exp = (hf['fouls_for'] + af['fouls_against']) / 2
