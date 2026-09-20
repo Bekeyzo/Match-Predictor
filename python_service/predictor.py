@@ -702,8 +702,24 @@ def predict_fixture(
     pred_text = le.inverse_transform([pred_class])[0]
     prob_map = {label: float(pred_probs[idx]) for idx, label in enumerate(le.classes_)}
 
-    exp_home = (hf['gf'] + af['ga']) / 2
-    exp_away = (af['gf'] + hf['ga']) / 2
+    # Strength-adjusted expected goals: a team's output scaled by its own attack
+    # rating AND the opponent's defensive rating (relative to the league). This
+    # makes predictions matchup-aware — a strong defence suppresses the opponent
+    # below their raw average. Falls back to the plain form-blend if strengths
+    # can't be computed (early season / unknown team).
+    _strengths, _lg = team_strengths(all_data, target_date)
+    if _strengths and home in _strengths and away in _strengths and _lg:
+        _lh, _la = _lg
+        exp_home = _lh * _strengths[home]['atk'] * _strengths[away]['def']
+        exp_away = _la * _strengths[away]['atk'] * _strengths[home]['def']
+        # blend 70% strength-model / 30% recent-form so hot/cold streaks still register
+        _form_home = (hf['gf'] + af['ga']) / 2
+        _form_away = (af['gf'] + hf['ga']) / 2
+        exp_home = 0.7 * exp_home + 0.3 * _form_home
+        exp_away = 0.7 * exp_away + 0.3 * _form_away
+    else:
+        exp_home = (hf['gf'] + af['ga']) / 2
+        exp_away = (af['gf'] + hf['ga']) / 2
 
     probs = scoreline_probs(exp_home, exp_away)
     most_likely = max(probs.items(), key=lambda kv: kv[1])[0]
