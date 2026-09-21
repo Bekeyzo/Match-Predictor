@@ -16,6 +16,7 @@ import (
 
 // fullResult holds every stat the confident-picks grader needs from co.uk.
 type fullResult struct {
+	date                               string
 	home, away                         string
 	hg, ag, hc, ac, hs, as, hf, af     int
 	ftr                                string // 'H','D','A'
