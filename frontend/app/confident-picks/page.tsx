@@ -70,7 +70,32 @@ export default function ConfidentPicksPage() {
     .some(list => list && list.length > 0);
   const HistorySection = () => (
     <>
-      <HistorySection />
+      {hist && hist.snapshot_date && (
+        <>
+          <div className="k-sh" style={{ marginTop: 40 }}>How last week&rsquo;s picks did <span className="sub">graded from real results</span></div>
+          {Object.keys(hist.markets).map(mk => {
+            const rate = hist.rates[mk];
+            return (
+              <div key={mk} style={{ marginTop: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                  <span style={{ fontWeight: 700 }}>{HIST_LABELS[mk] || mk}</span>
+                  {rate && <span className="num" style={{ color: 'var(--purple)', fontWeight: 700 }}>{rate.right}/{rate.total} ✓</span>}
+                </div>
+                {hist.markets[mk].map((pk, i) => {
+                  const who = pk.team ? `${pk.team} (vs ${pk.opponent})` : `${pk.home} v ${pk.away}`;
+                  const ok = pk.verdict === 'right';
+                  return (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 14, borderBottom: '1px solid var(--rule)' }}>
+                      <span>{ok ? '✓' : '✗'} {who}</span>
+                      <span style={{ color: 'var(--ink-2)' }}>{pk.actual}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </>
+      )}
     </>
   );
 
