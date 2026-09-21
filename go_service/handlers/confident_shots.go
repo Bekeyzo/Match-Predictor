@@ -145,8 +145,22 @@ func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 		}
 	}
 
-	// BANKER: the 6 highest-probability picks across ALL markets pooled together.
-	var banker []bankerPick
+	// BANKER: the 6 strongest DISTINCT fixtures, each showing its single highest
+	// option across ALL markets (match + team). Every pick is mapped to a
+	// normalized fixture key (the two teams sorted, so direction/market don't
+	// split the same game), and only the best pick per fixture is kept.
+	fixKey := func(x, y string) string {
+		if x < y {
+			return x + "|" + y
+		}
+		return y + "|" + x
+	}
+	best := map[string]bankerPick{}
+	consider := func(bp bankerPick, key string) {
+		if cur, ok := best[key]; !ok || bp.ProbPct > cur.ProbPct {
+			best[key] = bp
+		}
+	}
 	matchMarkets := map[string][]pickMatch{
 		"Over 2.5 goals": overGoals, "Both teams to score": btts,
 		"Over 8.5 corners": overCorners, "Over 26.5 shots": overShots,
@@ -154,10 +168,10 @@ func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 	}
 	for label, rows := range matchMarkets {
 		for _, m := range rows {
-			banker = append(banker, bankerPick{
+			consider(bankerPick{
 				Market: label, League: m.League, Label: label,
 				Detail: m.Home + " v " + m.Away, Date: m.Date, ProbPct: m.ProbPct,
-			})
+			}, fixKey(m.Home, m.Away))
 		}
 	}
 	teamMarkets := map[string][]pickTeam{
@@ -165,11 +179,15 @@ func computeConfidentPicks(apiKey, pythonURL string) map[string]interface{} {
 	}
 	for label, rows := range teamMarkets {
 		for _, t := range rows {
-			banker = append(banker, bankerPick{
+			consider(bankerPick{
 				Market: label, League: t.League, Label: t.Team + " " + label,
-				Detail: "vs " + t.Opponent, Date: t.Date, ProbPct: t.ProbPct,
-			})
+				Detail: t.Team + " vs " + t.Opponent, Date: t.Date, ProbPct: t.ProbPct,
+			}, fixKey(t.Team, t.Opponent))
 		}
+	}
+	var banker []bankerPick
+	for _, bp := range best {
+		banker = append(banker, bp)
 	}
 	sort.Slice(banker, func(i, j int) bool { return banker[i].ProbPct > banker[j].ProbPct })
 	if len(banker) > 6 {
