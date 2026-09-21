@@ -66,6 +66,22 @@ export default function ConfidentPicksPage() {
   if (error) return <div className="state">{error}<br /><a href="/" className="back" style={{ marginTop: 18 }}>← Back</a></div>;
   if (!d) return <div className="state">Crunching every fixture across the leagues…</div>;
 
+  const anyPicks = [d.banker, d.wins, d.over_goals, d.btts, d.over_corners, d.over_shots, d.over_fouls, d.team_shots, d.team_fouls, d.team_sot, d.keeper_saves]
+    .some(list => list && list.length > 0);
+  if (!anyPicks) return (
+    <div className="wrap" style={{ maxWidth: 720 }}>
+      <a href="/" className="back">← Back to leagues</a>
+      <h1 className="display" style={{ fontSize: 30, margin: '12px 0 4px' }}>Confident Picks</h1>
+      <div className="state" style={{ marginTop: 40 }}>
+        <div className="side-title">No picks right now</div>
+        <p style={{ maxWidth: 420, margin: '12px auto 0', lineHeight: 1.5 }}>
+          There are no upcoming fixtures to call — club football is likely on an international break.
+          Picks return as soon as the next round of matches is scheduled.
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="wrap" style={{ maxWidth: 720 }}>
       <a href="/" className="back">← Back to leagues</a>
