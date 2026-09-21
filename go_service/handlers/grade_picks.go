@@ -191,14 +191,27 @@ func GradeConfidentPicks(c echo.Context) error {
 		}
 
 		// GOAL-based markets: try football-data.org first (fast scores), so they
-		// grade same-day instead of waiting on co.uk.
+		// grade same-day instead of waiting on co.uk. Uses fuzzy name matching
+		// because org returns long names ("FC Barcelona") vs the snapshot's short
+		// resolved names ("Barcelona").
 		if isGoalMarket(r.market) {
 			org, ok := orgCache[code]
 			if !ok {
 				org, _ = fetchFinishedOrg(code, apiKey)
 				orgCache[code] = org
 			}
-			lookupIn(org)
+			// the two teams of this pick (match markets have home/away; team
+			// markets have team/opp)
+			t1, t2 := r.home, r.away
+			if t1 == "" {
+				t1, t2 = r.team, r.opp
+			}
+			for _, cand := range org {
+				if orgFixtureMatch(cand.home, cand.away, t1, t2) {
+					fr, found = cand, true
+					break
+				}
+			}
 		}
 
 		// Fall back to co.uk (needed for stat markets, and if org missed a game).
@@ -247,7 +260,10 @@ func gradePickMarket(market, team string, fr fullResult) (string, string) {
 		return "wrong", act
 	}
 	// which side is `team`? (for team markets)
-	teamIsHome := normTeam(team) == normTeam(fr.home)
+	// fuzzy: the team name (possibly short) vs fr.home (possibly org long name)
+	nt := normOrg(team)
+	nh := normOrg(fr.home)
+	teamIsHome := nt != "" && nh != "" && (strings.Contains(nh, nt) || strings.Contains(nt, nh))
 
 	switch market {
 	case "over_goals":
@@ -417,6 +433,49 @@ func fetchFinishedOrg(leagueCode, apiKey string) (map[string]fullResult, error) 
 func isGoalMarket(market string) bool {
 	switch market {
 	case "over_goals", "btts", "wins":
+		return true
+	}
+	return false
+}
+
+// normOrg reduces a football-data.org long name toward its core for matching
+// against the snapshot's shorter resolved names. Strips common club prefixes and
+// suffixes (FC, CF, CA, RC, AC, SC, CD, Real, Club, Atlético/Atletico, de, etc.).
+func normOrg(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	// remove accents crudely for the most common Spanish/Portuguese ones
+	repl := strings.NewReplacer(
+		"á", "a", "é", "e", "í", "i", "ó", "o", "ú", "u", "ñ", "n", "ç", "c",
+		"à", "a", "è", "e", "ì", "i", "ò", "o", "ù", "u", "ã", "a", "õ", "o",
+	)
+	s = repl.Replace(s)
+	// drop noise tokens anywhere in the name
+	noise := map[string]bool{
+		"fc": true, "cf": true, "ca": true, "rc": true, "ac": true, "sc": true,
+		"cd": true, "afc": true, "rcd": true, "ud": true, "sd": true, "club": true,
+		"real": true, "de": true, "athletic": true, "atletico": true, "deportivo": true,
+		"racing": true, "sporting": true, "1901": true, "1913": true,
+	}
+	parts := strings.Fields(s)
+	kept := parts[:0]
+	for _, p := range parts {
+		if !noise[p] {
+			kept = append(kept, p)
+		}
+	}
+	return strings.Join(kept, " ")
+}
+
+// orgFixtureMatch reports whether an org result (rHome/rAway) matches a pick's
+// two teams (a/b), in either orientation, using loose core-name containment.
+func orgFixtureMatch(rHome, rAway, a, b string) bool {
+	rh, ra := normOrg(rHome), normOrg(rAway)
+	na, nb := normOrg(a), normOrg(b)
+	cont := func(x, y string) bool {
+		return x != "" && y != "" && (strings.Contains(x, y) || strings.Contains(y, x))
+	}
+	// same orientation: rHome~a && rAway~b
+	if cont(rh, na) && cont(ra, nb) {
 		return true
 	}
 	return false
