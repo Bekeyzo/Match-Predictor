@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -119,6 +120,7 @@ func lookupResultWithinADay(m map[string]fullResult, date, nh, na string) (fullR
 
 // GradeConfidentPicks grades every ungraded snapshot whose match has been played.
 func GradeConfidentPicks(c echo.Context) error {
+	apiKey, _ := c.Get("football_api_key").(string)
 	rows, err := db.DB.Query(
 		`SELECT id, market, league, home_team, away_team, team, opponent, match_date, prob_pct
 		 FROM confident_snapshots
@@ -161,6 +163,7 @@ func GradeConfidentPicks(c echo.Context) error {
 		nameToCode[lg.Name] = lg.Code
 	}
 	resultsCache := map[string]map[string]fullResult{}
+	orgCache := map[string]map[string]fullResult{}
 
 	graded, right, wrong, stillPending := 0, 0, 0, 0
 	for _, r := range pending {
@@ -169,33 +172,48 @@ func GradeConfidentPicks(c echo.Context) error {
 			stillPending++
 			continue
 		}
-		res, ok := resultsCache[code]
-		if !ok {
-			res, err = fetchFullResultsCoUk(code)
-			if err != nil {
-				resultsCache[code] = nil
-				stillPending++
-				continue
-			}
-			resultsCache[code] = res
-		}
-		if res == nil {
-			stillPending++
-			continue
-		}
-
-		// resolve the fixture: for team markets, team/opp may be either side
 		var fr fullResult
 		var found bool
-		if r.home != "" {
-			fr, found = lookupResultWithinADay(res, r.mdate, normTeam(r.home), normTeam(r.away))
-		} else {
-			// team market: try team as home then team as away
-			fr, found = lookupResultWithinADay(res, r.mdate, normTeam(r.team), normTeam(r.opp))
-			if !found {
-				fr, found = lookupResultWithinADay(res, r.mdate, normTeam(r.opp), normTeam(r.team))
+
+		lookupIn := func(res map[string]fullResult) bool {
+			if res == nil {
+				return false
 			}
+			if r.home != "" {
+				fr, found = lookupResultWithinADay(res, r.mdate, normTeam(r.home), normTeam(r.away))
+			} else {
+				fr, found = lookupResultWithinADay(res, r.mdate, normTeam(r.team), normTeam(r.opp))
+				if !found {
+					fr, found = lookupResultWithinADay(res, r.mdate, normTeam(r.opp), normTeam(r.team))
+				}
+			}
+			return found
 		}
+
+		// GOAL-based markets: try football-data.org first (fast scores), so they
+		// grade same-day instead of waiting on co.uk.
+		if isGoalMarket(r.market) {
+			org, ok := orgCache[code]
+			if !ok {
+				org, _ = fetchFinishedOrg(code, apiKey)
+				orgCache[code] = org
+			}
+			lookupIn(org)
+		}
+
+		// Fall back to co.uk (needed for stat markets, and if org missed a game).
+		if !found {
+			res, ok := resultsCache[code]
+			if !ok {
+				res, err = fetchFullResultsCoUk(code)
+				if err != nil {
+					res = nil
+				}
+				resultsCache[code] = res
+			}
+			lookupIn(res)
+		}
+
 		if !found {
 			stillPending++
 			continue
@@ -336,4 +354,70 @@ func GetPicksHistory(c echo.Context) error {
 		"markets":       markets,
 		"rates":         rates,
 	})
+}
+
+// fetchFinishedOrg pulls finished matches from football-data.org (current season)
+// as fullResult with ONLY goals filled (stats zero) — football-data.org has scores
+// but not corners/shots/fouls. Fast to publish, so it grades goal-based markets
+// (over_goals, btts, wins) same-day, while co.uk (slow) covers the stat markets.
+// Keyed date|normHome|normAway. org uses long names, same source as the snapshots.
+func fetchFinishedOrg(leagueCode, apiKey string) (map[string]fullResult, error) {
+	url := "https://api.football-data.org/v4/competitions/" + leagueCode + "/matches?status=FINISHED"
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-Auth-Token", apiKey)
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("football-data.org returned %d", resp.StatusCode)
+	}
+	var payload struct {
+		Matches []struct {
+			UtcDate  string `json:"utcDate"`
+			HomeTeam struct{ Name string } `json:"homeTeam"`
+			AwayTeam struct{ Name string } `json:"awayTeam"`
+			Score    struct {
+				FullTime struct {
+					Home *int `json:"home"`
+					Away *int `json:"away"`
+				} `json:"fullTime"`
+			} `json:"score"`
+		} `json:"matches"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+	out := map[string]fullResult{}
+	for _, m := range payload.Matches {
+		if m.Score.FullTime.Home == nil || m.Score.FullTime.Away == nil {
+			continue
+		}
+		if len(m.UtcDate) < 10 {
+			continue
+		}
+		date := m.UtcDate[:10]
+		hg, ag := *m.Score.FullTime.Home, *m.Score.FullTime.Away
+		ftr := "D"
+		if hg > ag {
+			ftr = "H"
+		} else if ag > hg {
+			ftr = "A"
+		}
+		key := date + "|" + normTeam(m.HomeTeam.Name) + "|" + normTeam(m.AwayTeam.Name)
+		out[key] = fullResult{home: m.HomeTeam.Name, away: m.AwayTeam.Name, hg: hg, ag: ag, ftr: ftr}
+	}
+	return out, nil
+}
+
+// isGoalMarket reports whether a market can be graded from the score alone
+// (no corner/shot/foul stats needed) — so football-data.org can grade it fast.
+func isGoalMarket(market string) bool {
+	switch market {
+	case "over_goals", "btts", "wins":
+		return true
+	}
+	return false
 }
