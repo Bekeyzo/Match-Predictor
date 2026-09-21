@@ -207,6 +207,9 @@ func GradeConfidentPicks(c echo.Context) error {
 				t1, t2 = r.team, r.opp
 			}
 			for _, cand := range org {
+				if !datesWithinADay(cand.date, r.mdate) {
+					continue
+				}
 				if orgFixtureMatch(cand.home, cand.away, t1, t2) {
 					fr, found = cand, true
 					break
@@ -423,7 +426,7 @@ func fetchFinishedOrg(leagueCode, apiKey string) (map[string]fullResult, error) 
 			ftr = "A"
 		}
 		key := date + "|" + normTeam(m.HomeTeam.Name) + "|" + normTeam(m.AwayTeam.Name)
-		out[key] = fullResult{home: m.HomeTeam.Name, away: m.AwayTeam.Name, hg: hg, ag: ag, ftr: ftr}
+		out[key] = fullResult{date: date, home: m.HomeTeam.Name, away: m.AwayTeam.Name, hg: hg, ag: ag, ftr: ftr}
 	}
 	return out, nil
 }
@@ -469,14 +472,46 @@ func normOrg(s string) string {
 // orgFixtureMatch reports whether an org result (rHome/rAway) matches a pick's
 // two teams (a/b), in either orientation, using loose core-name containment.
 func orgFixtureMatch(rHome, rAway, a, b string) bool {
-	rh, ra := normOrg(rHome), normOrg(rAway)
-	na, nb := normOrg(a), normOrg(b)
-	cont := func(x, y string) bool {
-		return x != "" && y != "" && (strings.Contains(x, y) || strings.Contains(y, x))
+	// Match on strongest shared token per side, requiring a real overlap on BOTH
+	// sides (avoids grabbing the wrong 1-1 game). Token must be >=4 chars to avoid
+	// tiny-fragment collisions.
+	share := func(x, y string) bool {
+		nx, ny := normOrg(x), normOrg(y)
+		if nx == "" || ny == "" {
+			return false
+		}
+		if nx == ny {
+			return true
+		}
+		for _, tx := range strings.Fields(nx) {
+			if len(tx) < 4 {
+				continue
+			}
+			for _, ty := range strings.Fields(ny) {
+				if len(ty) < 4 {
+					continue
+				}
+				if tx == ty {
+					return true
+				}
+			}
+		}
+		return false
 	}
-	// same orientation: rHome~a && rAway~b
-	if cont(rh, na) && cont(ra, nb) {
+	// same orientation only: rHome~a && rAway~b (order is meaningful in org data)
+	return share(rHome, a) && share(rAway, b)
+}
+
+// datesWithinADay reports whether two YYYY-MM-DD dates are within one day.
+func datesWithinADay(a, b string) bool {
+	if a == b {
 		return true
 	}
-	return false
+	ta, e1 := time.Parse("2006-01-02", a)
+	tb, e2 := time.Parse("2006-01-02", b)
+	if e1 != nil || e2 != nil {
+		return a == b
+	}
+	d := ta.Sub(tb)
+	return d >= -24*time.Hour && d <= 24*time.Hour
 }
